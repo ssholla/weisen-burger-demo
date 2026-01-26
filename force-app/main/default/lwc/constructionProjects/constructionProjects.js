@@ -9,10 +9,6 @@ export default class ConstructionProjects extends LightningElement {
     selectedRegion = '';
     selectedPropertyType = '';
 
-    // Modal state
-    showDetailModal = false;
-    @track selectedProject = null;
-
     // All projects data
     @track allProjects = [
         {
@@ -23,9 +19,7 @@ export default class ConstructionProjects extends LightningElement {
             region: 'Greater Stuttgart',
             rooms: 2,
             bathrooms: 1,
-            area: 64.7,
-            floor: '0 of 3',
-            parkingCost: 26500,
+            area: 65,
             propertyType: 'Apartment',
             price: 342000,
             features: ['Terrace', 'Garden', 'Balcony'],
@@ -45,8 +39,6 @@ export default class ConstructionProjects extends LightningElement {
             rooms: 2,
             bathrooms: 1,
             area: 68,
-            floor: '0 of 3',
-            parkingCost: 26500,
             propertyType: 'Apartment',
             price: 343000,
             features: ['Terrace', 'Garden', 'Elevator'],
@@ -66,8 +58,6 @@ export default class ConstructionProjects extends LightningElement {
             rooms: 3,
             bathrooms: 2,
             area: 85,
-            floor: '0 of 3',
-            parkingCost: 28000,
             propertyType: 'Apartment',
             price: 451000,
             features: ['Garden', 'Ground Floor', 'Terrace'],
@@ -87,8 +77,6 @@ export default class ConstructionProjects extends LightningElement {
             rooms: 3,
             bathrooms: 2,
             area: 90,
-            floor: '2 of 3',
-            parkingCost: 26500,
             propertyType: 'Apartment',
             price: 479000,
             features: ['Balcony', 'Elevator', 'Premium Finishes'],
@@ -107,8 +95,6 @@ export default class ConstructionProjects extends LightningElement {
             rooms: 4,
             bathrooms: 2,
             area: 102,
-            floor: '1 of 3',
-            parkingCost: 28000,
             propertyType: 'Apartment',
             price: 559500,
             features: ['Balcony', 'Elevator', 'Parking'],
@@ -128,8 +114,6 @@ export default class ConstructionProjects extends LightningElement {
             rooms: 5,
             bathrooms: 3,
             area: 144,
-            floor: '3 of 3',
-            parkingCost: 30000,
             propertyType: 'Penthouse',
             price: 829000,
             features: ['Roof Terrace', 'Panoramic View', 'Premium Finishes', 'Elevator'],
@@ -149,8 +133,6 @@ export default class ConstructionProjects extends LightningElement {
             rooms: 4,
             bathrooms: 2,
             area: 122,
-            floor: '3 of 3',
-            parkingCost: 28000,
             propertyType: 'Penthouse',
             price: 708000,
             features: ['Terrace', 'Premium Finishes', 'Elevator'],
@@ -169,8 +151,6 @@ export default class ConstructionProjects extends LightningElement {
             rooms: 4,
             bathrooms: 2,
             area: 98,
-            floor: '0 of 3',
-            parkingCost: 26500,
             propertyType: 'Apartment',
             price: 549000,
             features: ['Balcony', 'Elevator', 'Storage'],
@@ -190,8 +170,6 @@ export default class ConstructionProjects extends LightningElement {
             rooms: 1,
             bathrooms: 1,
             area: 45,
-            floor: '0 of 3',
-            parkingCost: 25000,
             propertyType: 'Studio',
             price: 239000,
             features: ['Garden', 'Ground Floor'],
@@ -210,8 +188,6 @@ export default class ConstructionProjects extends LightningElement {
             rooms: 1,
             bathrooms: 1,
             area: 47,
-            floor: '2 of 3',
-            parkingCost: 25000,
             propertyType: 'Studio',
             price: 239000,
             features: ['Balcony', 'Elevator'],
@@ -329,8 +305,6 @@ export default class ConstructionProjects extends LightningElement {
         return filtered.map(project => ({
             ...project,
             formattedPrice: this.formatPrice(project.price),
-            parkingPrice: project.parkingCost ? `plus €${project.parkingCost.toLocaleString('de-DE')}` : 'Included',
-            pricePerSqm: `€${(project.price / project.area).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
             currentImage: project.images[project.currentImageIndex],
             hasMultipleImages: project.images.length > 1,
             imageIndicators: project.images.map((img, index) => ({
@@ -429,71 +403,9 @@ export default class ConstructionProjects extends LightningElement {
     // Action handlers
     handleViewDetails(event) {
         const projectId = event.currentTarget.dataset.projectId;
-        const project = this.filteredProjects.find(p => p.id === projectId);
-        if (project) {
-            this.selectedProject = { ...project };
-            this.showDetailModal = true;
-        }
-    }
-
-    handleCloseDetail() {
-        this.showDetailModal = false;
-        this.selectedProject = null;
-    }
-
-    // Detail modal carousel handlers
-    handleDetailPreviousImage() {
-        if (this.selectedProject) {
-            this.selectedProject.currentImageIndex = 
-                this.selectedProject.currentImageIndex === 0 
-                    ? this.selectedProject.images.length - 1 
-                    : this.selectedProject.currentImageIndex - 1;
-            
-            this.updateSelectedProjectDisplay();
-        }
-    }
-
-    handleDetailNextImage() {
-        if (this.selectedProject) {
-            this.selectedProject.currentImageIndex = 
-                this.selectedProject.currentImageIndex === this.selectedProject.images.length - 1 
-                    ? 0 
-                    : this.selectedProject.currentImageIndex + 1;
-            
-            this.updateSelectedProjectDisplay();
-        }
-    }
-
-    handleDetailIndicatorClick(event) {
-        const index = parseInt(event.currentTarget.dataset.index, 10);
-        if (this.selectedProject) {
-            this.selectedProject.currentImageIndex = index;
-            this.updateSelectedProjectDisplay();
-        }
-    }
-
-    updateSelectedProjectDisplay() {
-        // Force reactivity by creating a new object
-        this.selectedProject = {
-            ...this.selectedProject,
-            currentImage: this.selectedProject.images[this.selectedProject.currentImageIndex],
-            imageIndicators: this.selectedProject.images.map((img, index) => ({
-                index: index,
-                className: index === this.selectedProject.currentImageIndex ? 'indicator active' : 'indicator'
-            }))
-        };
-    }
-
-    handleDownloadExpose() {
-        // Implement download exposé logic
-        console.log('Download exposé for project:', this.selectedProject.code);
-        // You can implement file download or navigation here
-    }
-
-    handleContactFromDetail() {
-        // Implement contact from detail view
-        console.log('Contact from detail for project:', this.selectedProject.code);
-        // You can implement contact form or navigation here
+        // Navigate to project details or show modal
+        console.log('View details for project:', projectId);
+        // You can implement navigation or modal logic here
     }
 
     handleContactClick() {
