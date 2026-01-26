@@ -88,14 +88,14 @@ export default class ConstructionProjects extends LightningElement {
     // Sort options
     get sortOptions() {
         return [
-            { label: 'Default', value: '' },
-            { label: 'Best Selling', value: 'most_sold' },
-            { label: 'Alphabetical, A-Z', value: 'alpha_asc' },
-            { label: 'Alphabetical, Z-A', value: 'alpha_desc' },
-            { label: 'Price, low to high', value: 'price_asc' },
-            { label: 'Price, high to low', value: 'price_desc' },
-            { label: 'Date, old to new', value: 'date_old_new' },
-            { label: 'Date, new to old', value: 'date_new_old' }
+            { label: 'Ausgewählt', value: '' },
+            { label: 'meistverkauft', value: 'most_sold' },
+            { label: 'Alphabetisch, A-Z', value: 'alpha_asc' },
+            { label: 'Alphabetisch, Z-A', value: 'alpha_desc' },
+            { label: 'Preis, niedrig nach hoch', value: 'price_asc' },
+            { label: 'Preis, hoch nach niedrig', value: 'price_desc' },
+            { label: 'Datum, alt zu neu', value: 'date_old_new' },
+            { label: 'Datum, neu zu alt', value: 'date_new_old' }
         ];
     }
 
