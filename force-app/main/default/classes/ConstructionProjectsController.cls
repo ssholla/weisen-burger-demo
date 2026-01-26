@@ -63,6 +63,7 @@ public with sharing class ConstructionProjectsController {
                 }
             } else {
                 p.images = new List<String>();
+                p.images.add('https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200');
             }
             
             p.currentImageIndex = 0;
