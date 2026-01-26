@@ -86,9 +86,17 @@
                                     </div>
                                 </div>
 
-                                <div class="price-section">
-                                    <div class="price">{project.formattedPrice}</div>
-                                    <div class="parking-info">Parking: {project.parkingPrice}</div>
+                                <div class="project-footer">
+                                    <div class="price-wrapper">
+                                        <div class="project-price">{project.formattedPrice}</div>
+                                        <div class="parking-info">Parking: {project.parkingPrice}</div>
+                                    </div>
+                                    <button
+                                        class="view-button"
+                                        data-project-id={project.id}
+                                        onclick={handleViewDetails}>
+                                        View Details
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -101,5 +109,130 @@
                 </div>
             </template>
         </div>
+
+        <!-- Project Detail Modal -->
+        <template if:true={showDetailModal}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container detail-modal-container">
+                    <!-- Modal Header -->
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCloseDetail}>
+                            <lightning-icon icon-name="utility:close" alternative-text="Close" size="small"></lightning-icon>
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                        <h2 class="slds-modal__title detail-location">{selectedProject.location}, {selectedProject.region}</h2>
+                    </header>
+
+                    <!-- Modal Body -->
+                    <div class="slds-modal__content detail-modal-body">
+                        <div class="detail-container">
+                            <!-- Left Column: Image and Info -->
+                            <div class="detail-left">
+                                <!-- Status Badges -->
+                                <div class="status-badges">
+                                    <span class="status-badge available">On Sale</span>
+                                    <span class="status-badge ready">Ready for Occupancy Now</span>
+                                </div>
+
+                                <!-- Title -->
+                                <h1 class="detail-title">{selectedProject.title}</h1>
+                                <div class="detail-price">{selectedProject.formattedPrice}</div>
+
+                                <!-- Property Details Table -->
+                                <div class="details-table">
+                                    <div class="detail-row">
+                                        <span class="detail-label">Property</span>
+                                        <span class="detail-value">{selectedProject.code}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Number of Rooms</span>
+                                        <span class="detail-value">{selectedProject.rooms}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Living Area</span>
+                                        <span class="detail-value">{selectedProject.area} m²</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Floor</span>
+                                        <span class="detail-value">{selectedProject.floor}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Net Purchase Price</span>
+                                        <span class="detail-value">{selectedProject.formattedPrice} EUR</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Number of Bathrooms</span>
+                                        <span class="detail-value">{selectedProject.bathrooms}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Parking Space</span>
+                                        <span class="detail-value">{selectedProject.parkingPrice}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Price per Square Meter</span>
+                                        <span class="detail-value">{selectedProject.pricePerSqm}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Image Carousel -->
+                            <div class="detail-right">
+                                <div class="detail-carousel-container">
+                                    <template if:true={selectedProject.hasMultipleImages}>
+                                        <lightning-button-icon
+                                            icon-name="utility:chevronleft"
+                                            alternative-text="Previous Image"
+                                            variant="bare"
+                                            class="detail-carousel-nav detail-nav-prev"
+                                            onclick={handleDetailPreviousImage}>
+                                        </lightning-button-icon>
+                                    </template>
+
+                                    <div class="detail-image-wrapper">
+                                        <img 
+                                            src={selectedProject.currentImage} 
+                                            alt={selectedProject.title}
+                                            class="detail-project-image"
+                                        />
+                                    </div>
+
+                                    <template if:true={selectedProject.hasMultipleImages}>
+                                        <lightning-button-icon
+                                            icon-name="utility:chevronright"
+                                            alternative-text="Next Image"
+                                            variant="bare"
+                                            class="detail-carousel-nav detail-nav-next"
+                                            onclick={handleDetailNextImage}>
+                                        </lightning-button-icon>
+                                    </template>
+
+                                    <!-- Image Indicators -->
+                                    <template if:true={selectedProject.hasMultipleImages}>
+                                        <div class="detail-carousel-indicators">
+                                            <template for:each={selectedProject.imageIndicators} for:item="indicator">
+                                                <span 
+                                                    key={indicator.index} 
+                                                    class={indicator.className}
+                                                    data-index={indicator.index}
+                                                    onclick={handleDetailIndicatorClick}>
+                                                </span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <footer class="detail-modal-footer">
+                        <button class="custom-download-button" onclick={handleDownloadExpose}>Download Exposé</button>
+                        <button class="custom-contact-button" onclick={handleContactFromDetail}>Contact Us</button>
+                    </footer>
+
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
     </div>
 </template>

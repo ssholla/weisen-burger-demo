@@ -11,7 +11,9 @@ export default class ConstructionProjectResults extends LightningElement {
     selectedLocation = '';
     selectedRegion = '';
     selectedPropertyType = '';
-    selectedSort = '';
+    // Modal state
+    showDetailModal = false;
+    @track selectedProject = null;
 
     // All projects data
     @track allProjects = [];
@@ -213,5 +215,52 @@ export default class ConstructionProjectResults extends LightningElement {
             project.currentImageIndex = newIndex;
             this.allProjects = [...this.allProjects];
         }
+    }
+
+    handleViewDetails(event) {
+        const projectId = event.target.dataset.projectId;
+        this.selectedProject = this.filteredProjects.find(p => p.id === projectId);
+        this.showDetailModal = true;
+    }
+
+    handleCloseDetail() {
+        this.showDetailModal = false;
+        this.selectedProject = null;
+    }
+
+    handleDetailPreviousImage() {
+        if (this.selectedProject) {
+            this.updateImageIndex(this.selectedProject.id, -1);
+            this.selectedProject = this.filteredProjects.find(p => p.id === this.selectedProject.id);
+        }
+    }
+
+    handleDetailNextImage() {
+        if (this.selectedProject) {
+            this.updateImageIndex(this.selectedProject.id, 1);
+            this.selectedProject = this.filteredProjects.find(p => p.id === this.selectedProject.id);
+        }
+    }
+
+    handleDetailIndicatorClick(event) {
+        if (this.selectedProject) {
+            const index = parseInt(event.target.dataset.index, 10);
+            const projectId = this.selectedProject.id;
+            
+            const projectIndex = this.allProjects.findIndex(p => p.id === projectId);
+            if (projectIndex !== -1) {
+                this.allProjects[projectIndex].currentImageIndex = index;
+                this.allProjects = [...this.allProjects];
+                this.selectedProject = this.filteredProjects.find(p => p.id === projectId);
+            }
+        }
+    }
+
+    handleDownloadExpose() {
+        console.log('Download Exposé for', this.selectedProject.title);
+    }
+
+    handleContactFromDetail() {
+        console.log('Contact for', this.selectedProject.title);
     }
 }
