@@ -152,7 +152,14 @@ export default class ConstructionProjectResults extends LightningElement {
             imageIndicators: (project.images || []).map((img, index) => ({
                 index: index,
                 className: index === project.currentImageIndex ? 'indicator active' : 'indicator'
-            }))
+            })),
+            // Display logic helpers
+            hasTitle: !!project.title,
+            displayLocation: project.region ? `${project.location}, ${project.region}` : project.location,
+            hasFeatures: project.features && project.features.length > 0,
+            hasRooms: !!project.rooms,
+            hasArea: !!project.area,
+            hasPropertyType: !!project.propertyType
         }));
     }
 

@@ -84,13 +84,24 @@
                                         </lightning-icon>
                                         <span>{project.area} m²</span>
                                     </div>
+                                    <div class="detail-item">
+                                        <lightning-icon 
+                                            icon-name="utility:home" 
+                                            size="x-small"
+                                            class="detail-icon">
+                                        </lightning-icon>
+                                        <span>{project.propertyType}</span>
+                                    </div>
+                                </div>
+
+                                <div class="project-features">
+                                    <template for:each={project.features} for:item="feature">
+                                        <span key={feature} class="feature-tag">{feature}</span>
+                                    </template>
                                 </div>
 
                                 <div class="project-footer">
-                                    <div class="price-wrapper">
-                                        <div class="project-price">{project.formattedPrice}</div>
-                                        <div class="parking-info">Parking: {project.parkingPrice}</div>
-                                    </div>
+                                    <div class="project-price">{project.formattedPrice}</div>
                                     <button
                                         class="view-button"
                                         data-project-id={project.id}
