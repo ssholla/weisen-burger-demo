@@ -233,7 +233,7 @@
                 <div class="slds-modal__container detail-modal-container">
                     <!-- Modal Header -->
                     <header class="slds-modal__header">
-                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCloseDetail}>
+                        <button class="custom-modal-close-button" title="Close" onclick={handleCloseDetail}>
                             <lightning-icon icon-name="utility:close" alternative-text="Close" size="small"></lightning-icon>
                             <span class="slds-assistive-text">Close</span>
                         </button>
@@ -293,18 +293,9 @@
 
                                 <!-- Action Buttons -->
                                 <div class="detail-actions">
-                                    <lightning-button
-                                        label="Download Exposé"
-                                        variant="brand"
-                                        class="download-button"
-                                        onclick={handleDownloadExpose}>
-                                    </lightning-button>
-                                    <lightning-button
-                                        label="Contact Us"
-                                        variant="neutral"
-                                        class="contact-detail-button"
-                                        onclick={handleContactFromDetail}>
-                                    </lightning-button>
+                                     <button class="custom-download-button" onclick={handleDownloadExpose}>Download Exposé</button>
+                                    <button class="custom-contact-button" onclick={handleContactFromDetail}>Contact Us</button>
+
                                 </div>
                             </div>
 
