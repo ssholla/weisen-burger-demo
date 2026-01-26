@@ -45,7 +45,7 @@ public with sharing class ConstructionProjectsController {
             p.price = unit.KS_Price__c;
             
             if (String.isNotBlank(unit.KS_Features__c)) {
-                p.features = unit.KS_Features__c.split(',');
+                p.features = unit.KS_Features__c.split(';');
                 // Trim whitespace
                 for(Integer i=0; i<p.features.size(); i++) {
                     p.features[i] = p.features[i].trim();
