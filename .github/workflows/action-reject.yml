@@ -1,0 +1,149 @@
+name: Action Reject
+
+env:
+  REJECTION_COUNTER_FIELD: "PRRejectionCounter__c"
+
+on:
+  workflow_call:
+    secrets:
+      KERUN_ORG_JWT_SERVER_KEY:
+        required: true
+      KERUN_ORG_DEPLOYMENT_USER:
+        required: true
+      KERUN_ORG_CONSUMER_KEY:
+        required: true
+
+jobs:
+  rejection:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      actions: read
+      security-events: write
+      contents: read
+      issues: write
+      pull-requests: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Setup Salesforce Environment
+      uses: ./.github/actions/setup-salesforce
+    - name: Extract ticket numbers and commit authors from PR
+      id: tickets
+      run: |
+        BRANCH_TICKETS=$(echo "${{ github.event.pull_request.head.ref }}" | grep -oE '[A-Z0-9]+-[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//')        
+        PR_TEXT="${{ github.event.pull_request.title }} ${{ github.event.pull_request.body }}"
+        PR_TICKETS=$(echo "$PR_TEXT" | grep -oE '[A-Z0-9]+-[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//')        
+        COMMIT_TICKETS=$(git log --oneline ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -oE '[A-Z0-9]+-[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//')        
+        COMMIT_AUTHORS=$(git log --pretty=format:'%an' ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | sort -u | tr '\n' ',' | sed 's/,$//')
+        COMMIT_EMAILS=$(git log --pretty=format:'%ae' ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | sort -u | tr '\n' ',' | sed 's/,$//')
+        PRIMARY_AUTHOR=$(git log --pretty=format:'%an' ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | head -1)
+        ALL_TICKETS="$BRANCH_TICKETS,$PR_TICKETS,$COMMIT_TICKETS"
+        UNIQUE_TICKETS=$(echo "$ALL_TICKETS" | tr ',' '\n' | grep -v '^$' | sort -u | tr '\n' ',' | sed 's/,$//')
+        
+        echo "tickets=$UNIQUE_TICKETS" >> $GITHUB_OUTPUT
+        echo "commit-authors=$COMMIT_AUTHORS" >> $GITHUB_OUTPUT
+        echo "commit-emails=$COMMIT_EMAILS" >> $GITHUB_OUTPUT
+        echo "primary-author=$PRIMARY_AUTHOR" >> $GITHUB_OUTPUT
+        
+        echo "Found tickets: $UNIQUE_TICKETS"
+        echo "Found commit authors: $COMMIT_AUTHORS"
+        echo "Primary author: $PRIMARY_AUTHOR"
+
+    - name: Authorize Kerun ORG
+      if: steps.tickets.outputs.tickets != ''
+      shell: bash
+      run: |
+      
+        echo "🔐 Authorizing Salesforce org..."
+        echo "🌐 Instance URL: ${{ vars.KERUN_INSTANCE_URL }}"
+        echo "👤 Username: ${{ secrets.KERUN_ORG_DEPLOYMENT_USER }}"
+        
+        KEY_FILE="server.key"
+        echo "${{ secrets.KERUN_ORG_JWT_SERVER_KEY }}" > "$KEY_FILE"
+
+        sf org login jwt \
+          --username "${{ secrets.KERUN_ORG_DEPLOYMENT_USER }}" \
+          --jwt-key-file "$KEY_FILE" \
+          --client-id "${{ secrets.KERUN_ORG_CONSUMER_KEY }}" \
+          --instance-url "${{ vars.KERUN_INSTANCE_URL }}" \
+          --set-default
+
+    - name: Process tickets and update Salesforce case fields
+      if: steps.tickets.outputs.tickets != ''
+      shell: bash
+      run: |
+
+        update_case_field() {
+          local case_id="$1"
+          local field_name="$2"
+          
+          echo "🔄 Processing Case ID: $case_id - Incrementing $field_name"
+          
+          local current_value=$(sf data query \
+            --query "SELECT $field_name FROM Case WHERE Id = '$case_id'" \
+            --result-format csv | tail -n +2 | head -n 1)
+          
+          if [[ -z "$current_value" || "$current_value" == "null" || "$current_value" == "" ]]; then
+            current_value=0
+          fi
+          
+          local new_value=$((current_value + 1))
+          
+          echo "🔢 Current value: $current_value, New value: $new_value"
+          
+          sf data update record \
+            -s Case \
+            -i "$case_id" \
+            -v "$field_name=$new_value"
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Successfully updated Case $case_id - $field_name incremented to $new_value"
+          else
+            echo "❌ Failed to update Case $case_id"
+          fi
+        }
+
+        TICKET_STRING="${{steps.tickets.outputs.tickets }}"
+
+        if [[ -z "${TICKET_STRING// }" ]]; then
+          echo "ℹ️ No tickets provided. Skipping case field updates."
+          exit 0
+        fi
+
+        FIELD_NAME="${{ env.REJECTION_COUNTER_FIELD }}"
+
+        echo "🎯 Incrementing field '$FIELD_NAME' to count rejections"
+
+        IFS=',' read -r -a TICKETS <<< "$TICKET_STRING"
+
+        for TICKET in "${TICKETS[@]}"; do
+
+          if [[ -z "${TICKET// }" ]]; then
+            continue
+          fi
+
+          echo "🔍 Processing ticket: $TICKET"
+
+          CASE_IDS=$(sf data query \
+            --query "SELECT Id FROM Case WHERE KS_JIRATicket__c = '$TICKET'" \
+            --result-format csv | tail -n +2)
+
+          if [ -z "$CASE_IDS" ]; then
+            echo "⚠️ No cases found for $TICKET"
+            continue
+          fi
+
+          echo "📊 Found $(echo "$CASE_IDS" | wc -l | tr -d ' ') case(s) for ticket $TICKET"
+
+          for CASE_ID in $CASE_IDS; do
+            if [[ -n "$CASE_ID" && "$CASE_ID" != "Id" ]]; then
+              update_case_field "$CASE_ID" "$FIELD_NAME"
+            fi
+          done
+        done
+
+        echo "🎉 Case field increment process completed"

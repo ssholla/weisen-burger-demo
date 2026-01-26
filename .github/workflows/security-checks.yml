@@ -1,0 +1,184 @@
+name: Workflow Security Checks
+
+on:
+  schedule:
+    - cron: '0 6 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  dependencies-version-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Salesforce Environment
+        uses: ./.github/actions/setup-salesforce
+
+      - name: 'Dependencies Version Security Check'
+        id: security_check
+        shell: bash
+        run: |
+          safe_npm_show() {
+            npm show "$1" version 2>/dev/null || echo "N/A"
+          }
+
+          strip_ansi() {
+            sed -r 's/\x1B\[[0-9;]*[mK]//g'
+          }
+
+          normalize_version() {
+            echo "$1" | strip_ansi | sed 's/[^[:print:]]//g' | xargs
+          }
+
+          SF_CURRENT=$(sf --version 2>/dev/null | grep '^@salesforce/cli' | cut -d'/' -f3 | awk '{print $1}' || echo "N/A")
+          DELTA_CURRENT=$(sf plugins --core 2>/dev/null | grep sfdx-git-delta | awk '{print $2}' || echo "N/A")
+
+          SF_LATEST=$(safe_npm_show @salesforce/cli)
+          DELTA_LATEST=$(safe_npm_show sfdx-git-delta)
+
+          SF_CURRENT=$(normalize_version "$SF_CURRENT")
+          DELTA_CURRENT=$(normalize_version "$DELTA_CURRENT")
+          SF_LATEST=$(normalize_version "$SF_LATEST")
+          DELTA_LATEST=$(normalize_version "$DELTA_LATEST")
+
+          sf_outdated="false"
+          delta_outdated="false"
+          overall_outdated="false"
+
+          if [ "$SF_CURRENT" != "$SF_LATEST" ] && [ "$SF_CURRENT" != "N/A" ]; then
+            sf_outdated="true"
+          fi
+
+          if [ "$DELTA_CURRENT" != "$DELTA_LATEST" ] && [ "$DELTA_CURRENT" != "N/A" ]; then
+            delta_outdated="true"
+          fi
+
+          if [ "$sf_outdated" = "true" ] || [ "$delta_outdated" = "true" ]; then
+            overall_outdated="true"
+          fi
+
+          echo "🔍 SF_CURRENT: $SF_CURRENT"
+          echo "🔍 SF_LATEST:  $SF_LATEST"
+          echo "🔍 DELTA_CURRENT: $DELTA_CURRENT"
+          echo "🔍 DELTA_LATEST:  $DELTA_LATEST"
+
+          REPORT="🧪 Salesforce CLI:    $SF_CURRENT → $SF_LATEST\n"
+          REPORT+="🧪 sfdx-git-delta:    $DELTA_CURRENT → $DELTA_LATEST\n"
+          REPORT+="\n✅ Version check complete. No changes made."
+          SLACK_REPORT="\`\`\`$REPORT\`\`\`"
+
+          {
+            echo "sf_outdated=$sf_outdated"
+            echo "delta_outdated=$delta_outdated"
+            echo "outdated=$overall_outdated"
+            echo "report=$SLACK_REPORT"
+          } >> $GITHUB_OUTPUT
+
+      - name: Slack Notification for Outdated Dependencies
+        if: ${{ steps.security_check.outputs.outdated == 'true' }}
+        uses: ./.github/actions/slack-notification-sent
+        with:
+          message: Visit the link to view the dependencies that require update.
+          title: '⚠️ Outdated Dependencies Detected ⚠️'
+          channel-name: ${{ vars.SLACK_CHANNEL }}
+          slack-token: ${{ secrets.SLACK_API }}
+
+      - name: Check if there is access on Kerun's org
+        id: access_check
+        shell: bash
+        run: |
+          KEY_FILE="server.key"
+          echo "${{ secrets.KERUN_ORG_JWT_SERVER_KEY }}" > "$KEY_FILE"
+          
+          if sf org login jwt \
+            --username "${{ secrets.KERUN_ORG_DEPLOYMENT_USER }}" \
+            --jwt-key-file "$KEY_FILE" \
+            --client-id "${{ secrets.KERUN_ORG_CONSUMER_KEY }}" \
+            --instance-url "${{ vars.KERUN_INSTANCE_URL }}" \
+            --set-default; then
+            echo "access_granted=true" >> $GITHUB_OUTPUT
+          else
+            echo "access_granted=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Slack Notification (Kerun Org Access Failure)
+        if: ${{ steps.access_check.outputs.access_granted == 'false' }}
+        uses: ./.github/actions/slack-notification-sent
+        with:
+          message: "Access On Kerun's Org Dropped"
+          title: '⚠️ Security Warning ⚠️'
+          channel-name: ${{ vars.SLACK_CHANNEL }}
+          slack-token: ${{ secrets.SLACK_API }}
+
+      - name: Check if access to Jira is active
+        id: jira_check
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" -u "${{ secrets.KERUN_JIRA_USERNAME }}:${{ secrets.KERUN_JIRA_ACCESS_API }}" \
+            -X GET "${{ secrets.KERUN_JIRA_URL }}/rest/api/3/myself")
+      
+          if [ "$response" -eq 200 ]; then
+            echo "access=true" >> $GITHUB_OUTPUT
+          else
+            echo "access=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Slack Notification (Jira Access Failure)
+        if: ${{ steps.jira_check.outputs.access == 'false' }}
+        uses: ./.github/actions/slack-notification-sent
+        with:
+          message: "Jira Access Dropped"
+          title: '⚠️ Security Warning ⚠️'
+          channel-name: ${{ vars.SLACK_CHANNEL }}
+          slack-token: ${{ secrets.SLACK_API }}
+
+  secret-key-check-uat:
+    runs-on: ubuntu-latest
+    environment: uat
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Security Date Checker
+        id: check_jwt_uat
+        uses: ./.github/actions/check-security-date
+        with:
+          security_date: ${{ vars.JWT_LAST_UPDATED_DATE }}
+          jwt_key: ${{ secrets.JWT_SERVER_KEY }}
+          days_rotation: 180
+          warning_days_before_expiration: 7
+
+      - name: Slack Notification (JWT UAT Expiring)
+        if: ${{ steps.check_jwt_uat.outputs.expires_soon == 'true' }}
+        uses: ./.github/actions/slack-notification-sent
+        with:
+          message: "Days remaining: ${{ steps.check_jwt_uat.outputs.days_remaining }} for JWT UAT Token To Expire"
+          title: '⚠️ Security Warning ⚠️'
+          channel-name: ${{ vars.SLACK_CHANNEL }}
+          slack-token: ${{ secrets.SLACK_API }}
+
+  secret-key-check-prod:
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Security Date Checker
+        id: check_jwt_prod
+        uses: ./.github/actions/check-security-date
+        with:
+          security_date: ${{ vars.JWT_LAST_UPDATED_DATE }}
+          jwt_key: ${{ secrets.JWT_SERVER_KEY }}
+          days_rotation: 180
+          warning_days_before_expiration: 7
+
+      - name: Slack Notification (JWT Prod Expiring)
+        if: ${{ steps.check_jwt_prod.outputs.expires_soon == 'true' }}
+        uses: ./.github/actions/slack-notification-sent
+        with:
+          message: "Days remaining: ${{ steps.check_jwt_prod.outputs.days_remaining }} for JWT Prod Token To Expire"
+          title: '⚠️ Security Warning ⚠️'
+          channel-name: ${{ vars.SLACK_CHANNEL }}
+          slack-token: ${{ secrets.SLACK_API }}

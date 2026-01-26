@@ -1,0 +1,9 @@
+engines:
+  pmd:
+    custom_rulesets:
+      - "static-code-analysis-rules/ruleset.xml"
+    file_extensions:
+      apex: [".cls", ".trigger"]
+      xml: [".xml"]
+  flow:
+    disable_engine: true

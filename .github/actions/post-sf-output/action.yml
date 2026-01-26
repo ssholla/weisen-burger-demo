@@ -1,0 +1,34 @@
+name: 'Post PR Comment'
+description: 'Reads a file, strips ANSI characters, and posts a comment on a PR.'
+inputs:
+  output-file:
+    description: 'Path to the file containing CLI output'
+    required: true
+  comment-label:
+    description: 'Label to show above the output'
+    required: true
+  issue-number:
+    description: 'Pull request number'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Strip ANSI and prepare comment body
+      shell: bash
+      run: |
+        file_path="${{ inputs.output-file }}"
+        if [[ ! -f "$file_path" ]]; then
+          echo "File not found: $file_path"
+          exit 1
+        fi
+        sed -r "s:\x1B\[[0-9;]*[mK]::g" "$file_path" | tail -n 100 > stripped_output.txt
+        echo "${{ inputs.comment-label }}:" > comment.txt
+        echo '```' >> comment.txt
+        cat stripped_output.txt >> comment.txt
+        echo '```' >> comment.txt
+
+    - name: Post PR comment
+      uses: peter-evans/create-or-update-comment@v4
+      with:
+        issue-number: ${{ inputs.issue-number }}
+        body-path: comment.txt

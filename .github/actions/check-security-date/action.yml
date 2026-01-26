@@ -1,0 +1,79 @@
+name: 'Check Security Date'
+description: 'Gets date from secret, calculates day difference, and outputs if key is expiring soon'
+
+inputs:
+  security_date:
+    description: 'The date from the secret (e.g., 2024-10-01)'
+    required: true
+  jwt_key:
+    description: 'The JWT Key for specific environment'
+    required: true
+  days_rotation:
+    description: 'Days the key should be changed'
+    required: true
+  warning_days_before_expiration:
+    description: 'Days before expiration to warn (e.g., 14)'
+    required: true
+
+outputs:
+  expires_soon:
+    description: 'Whether the key will expire within the warning period'
+    value: ${{ steps.check.outputs.expires_soon }}
+  days_remaining:
+    description: 'How many days are left before rotation is required'
+    value: ${{ steps.check.outputs.days_remaining }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Calculate and check security rotation date
+      id: check
+      shell: bash
+      run: |
+        set -e  # Exit on errors
+        echo "🔐 Starting security check..."
+
+        SECURITY_DATE="${{ inputs.security_date }}"
+        ROTATION_DAYS=${{ inputs.days_rotation }}
+        WARNING_DAYS=${{ inputs.warning_days_before_expiration }}
+        CURRENT_DATE=$(date +%Y-%m-%d)
+
+        echo "Security Date       : $SECURITY_DATE"
+        echo "Rotation Threshold  : $ROTATION_DAYS"
+        echo "Warning Days Before : $WARNING_DAYS"
+        echo "Current Date        : $CURRENT_DATE"
+
+        SECURITY_DATE_SEC=$(date -d "$SECURITY_DATE" +%s || exit 1)
+        CURRENT_DATE_SEC=$(date -d "$CURRENT_DATE" +%s || exit 1)
+
+        DIFF_DAYS=$(( (CURRENT_DATE_SEC - SECURITY_DATE_SEC) / 86400 ))
+        DAYS_REMAINING=$((ROTATION_DAYS - DIFF_DAYS))
+
+        echo "Days since rotation: $DIFF_DAYS"
+        echo "Days remaining     : $DAYS_REMAINING"
+
+        # Write outputs to $GITHUB_OUTPUT
+        echo "days_remaining=$DAYS_REMAINING" >> $GITHUB_OUTPUT
+
+        # Use dynamic warning_days_before_expiration instead of hardcoded 14
+        if [ "$DIFF_DAYS" -ge "$ROTATION_DAYS" ]; then
+          echo "expires_soon=true" >> $GITHUB_OUTPUT
+          echo "❗ Overdue for rotation"
+        elif [ "$DAYS_REMAINING" -le "$WARNING_DAYS" ]; then
+          echo "expires_soon=true" >> $GITHUB_OUTPUT
+          echo "⚠️ Rotation due soon"
+        else
+          echo "expires_soon=false" >> $GITHUB_OUTPUT
+          echo "✅ Rotation status OK"
+        fi
+
+    - name: JWT Format Checks
+      shell: bash
+      run: |
+        JWT_KEY="${{ inputs.jwt_key }}"
+        echo "🔎 Checking JWT key format..."
+        if ! ( echo "$JWT_KEY" | grep -q "BEGIN PRIVATE KEY" && echo "$JWT_KEY" | grep -q "END PRIVATE KEY" ); then
+          echo "🔴 JWT format is invalid"
+        else
+          echo "✅ JWT format is valid"
+        fi

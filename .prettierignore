@@ -1,0 +1,48 @@
+# Only format files in force-app directory
+# Ignore everything at root level except force-app
+/*
+!/force-app/
+
+# Ignore third-party frameworks within force-app
+force-app/trigger-framework/
+
+# Dependencies and build outputs
+node_modules/
+package-lock.json
+yarn.lock
+.sfdx/
+.localdevserver/
+.sf/
+dist/
+build/
+*.min.js
+*.min.css
+*.tsbuildinfo
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env*
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+
+# Salesforce specific - keep these unformatted even in force-app
+**/sfdx-project.json
+**/package.xml
+**/.forceignore
+
+# Generated files
+coverage/
+.nyc_output/
+*.lcov

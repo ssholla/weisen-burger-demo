@@ -1,0 +1,38 @@
+name: Jira Ticket Status Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_keys:
+        description: 'Comma-separated list of Jira issue keys'
+        required: true
+        type: string
+
+jobs:
+  check-jira-status:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install npm dependencies for status check
+        run: |
+          cd ./.github/actions/jira-ticket-status-check
+          npm install
+
+      - name: Check Jira Ticket Statuses
+        id: status_check
+        uses: ./.github/actions/jira-ticket-status-check
+        with:
+          jira_url: ${{ secrets.KERUN_JIRA_URL }}
+          jira_username: ${{ secrets.KERUN_JIRA_USERNAME }}
+          jira_api_token: ${{ secrets.KERUN_JIRA_ACCESS_API }}
+          jira_invalid_statuses: 'Reopen,Refinement,New,Ready for Doing,Closed'
+          issue_keys: ${{ inputs.issue_keys }}
+
+      - name: Output Validation Result
+        run: |
+          echo "Invalid validation status: ${{ steps.status_check.outputs.invalid_validation_status }}"
+          echo "Status Summary:"
+          echo "${{ steps.status_check.outputs.status_summary }}"

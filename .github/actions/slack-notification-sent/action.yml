@@ -1,0 +1,32 @@
+name: 'Slack Notification'
+description: 'Sends a notification to Slack with a customizable message.'
+inputs:
+  message:
+    description: 'The message to send to Slack.'
+    required: true
+    type: string
+  title:
+    description: 'The title of the notification.'
+    required: true
+    type: string
+  slack-token:
+    description: 'Slack API token'
+    required: true
+    type: string
+  channel-name:
+    description: 'Slack Channel Name'
+    required: true
+    type: string
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Send Slack notification
+      shell: bash
+      run: |
+        curl -X POST -H "Content-type: application/json; charset=utf-8" \
+            -H "Authorization: Bearer ${{ inputs.slack-token }}" \
+            --data '{
+            "channel": "${{ inputs.channel-name }}",
+            "text": "📢 *`${{ inputs.title }}`*\n\n👤 *Triggered by:* `${{ github.actor }}`\n📝 *Message:* `${{ inputs.message }}`\n🔗 *Trigger Details:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Workflow>"
+            }' https://slack.com/api/chat.postMessage

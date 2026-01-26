@@ -1,0 +1,120 @@
+name: "Update Salesforce Cases by Ticket"
+description: "Parses commit messages for ticket numbers and updates matching Salesforce Cases"
+
+inputs:
+  kerun-instance-url:
+    description: "Salesforce instance URL"
+    required: true
+  jwt-server-key:
+    description: "JWT server key"
+    required: true
+  deployment-user:
+    description: "Salesforce deployment username"
+    required: true
+  consumer-key:
+    description: "Salesforce connected app client ID"
+    required: true
+  case-comment-body:
+    description: "The case comment body"
+    required: true
+  tickets:
+    description: "Comma-separated list of Jira ticket numbers"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Authorize Kerun ORG
+      shell: bash
+      run: |
+        KEY_FILE="server.key"
+        echo "${{ inputs.jwt-server-key }}" > "$KEY_FILE"
+
+        sf org login jwt \
+          --username "${{ inputs.deployment-user }}" \
+          --jwt-key-file "$KEY_FILE" \
+          --client-id "${{ inputs.consumer-key }}" \
+          --instance-url "${{ inputs.kerun-instance-url }}" \
+          --set-default
+
+    - name: Process tickets and update Salesforce cases
+      shell: bash
+      run: |
+
+        create_case_comments() {
+          local case_id="$1"
+          local comment_body="$2"
+          local max_length=4000
+          
+          if [ ${#comment_body} -le $max_length ]; then
+            echo "📝 Creating Case Comment for Case ID: $case_id (${#comment_body} characters)"
+            local escaped_body=$(echo "$comment_body" | sed "s/'/''/g")
+            sf data create record \
+              -s CaseComment \
+              -v "ParentId='$case_id' CommentBody='$escaped_body'"
+            return
+          fi
+          
+          local prefix_space=15
+          local effective_length=$((max_length - prefix_space))
+          local total_chunks=$(( (${#comment_body} + effective_length - 1) / effective_length ))
+          
+          local chunk_num=$total_chunks
+          
+          while [ $chunk_num -ge 1 ]; do
+            local pos=$(( (chunk_num - 1) * effective_length ))
+            local remaining_length=$(( ${#comment_body} - pos ))
+            local chunk_length=$effective_length
+            
+            if [ $remaining_length -le $effective_length ]; then
+              chunk_length=$remaining_length
+            fi
+            
+            local chunk="${comment_body:$pos:$chunk_length}"
+            local prefixed_chunk="[Part $chunk_num/$total_chunks] $chunk"
+            
+            echo "📝 Creating Case Comment for Case ID: $case_id (${#prefixed_chunk} characters) - Part $chunk_num/$total_chunks"
+            
+            local escaped_chunk=$(echo "$prefixed_chunk" | sed "s/'/''/g")
+            
+            sf data create record \
+              -s CaseComment \
+              -v "ParentId='$case_id' CommentBody='$escaped_chunk'"
+            
+            chunk_num=$((chunk_num - 1))
+          done
+        }
+
+        TICKET_STRING="${{ inputs.tickets }}"
+
+        if [[ -z "${TICKET_STRING// }" ]]; then
+          echo "ℹ️ No tickets provided. Skipping case comment creation."
+          exit 0
+        fi
+
+        IFS=',' read -r -a TICKETS <<< "$TICKET_STRING"
+
+        for TICKET in "${TICKETS[@]}"; do
+
+          if [[ -z "${TICKET// }" ]]; then
+            continue
+          fi
+
+          echo "🔍 Processing ticket: $TICKET"
+
+          CASE_IDS=$(sf data query \
+            --query "SELECT Id FROM Case WHERE KS_JIRATicket__c = '$TICKET'" \
+            --result-format csv | tail -n +2)
+
+          if [ -z "$CASE_IDS" ]; then
+            echo "⚠️ No cases found for $TICKET"
+            continue
+          fi
+
+          COMMENT_BODY="${{ inputs.case-comment-body }}"
+          echo "📊 Comment body length: ${#COMMENT_BODY} characters"
+
+          for CASE_ID in $CASE_IDS; do
+            create_case_comments "$CASE_ID" "$COMMENT_BODY"
+          done
+        done

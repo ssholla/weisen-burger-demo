@@ -1,0 +1,363 @@
+name: Action Validate
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      user-map-for-deployments:
+        required: true
+        type: boolean
+      skip-rules:
+        required: false
+        type: boolean
+        description: "When true, skip Jira ticket validation and static analysis rules"
+      skip-rule-users:
+        required: false
+        type: string
+        description: "Comma-separated GitHub usernames for which static analysis rules are skipped"
+    secrets:
+      JWT_SERVER_KEY:
+        required: true
+      DEPLOYMENT_USER:
+        required: true
+      CONSUMER_KEY:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Validate to ${{ inputs.environment }}
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Decide if static analysis rules should be skipped
+        id: rule-skip
+        run: |
+          # If the caller explicitly requested skipping rules via input, honor it immediately
+          if [ "${{ inputs.skip-rules }}" = "true" ]; then
+            echo "Static analysis and Jira checks explicitly disabled by workflow caller via skip-rules input."
+            echo "skip_rules=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          # Prefer the pull request author (who opened the PR) over the workflow runner actor
+          user="${{ github.event.pull_request.user.login}}"
+          # Prefer workflow input; if empty, fallback to repository/environment variable EXCLUDE_USERS_FROM_RULES
+          input_list="${{ inputs.skip-rule-users }}"
+          env_list="${{ vars.EXCLUDE_USERS_FROM_RULES }}"
+          if [ -n "$input_list" ]; then
+            raw_list="$input_list"
+            echo "Using skip list from workflow input."
+          elif [ -n "$env_list" ]; then
+            raw_list="$env_list"
+            echo "Using skip list from environment variable EXCLUDE_USERS_FROM_RULES."
+          else
+            raw_list=""
+          fi
+
+          if [ -z "$raw_list" ]; then
+            echo "No skip list provided (input nor EXCLUDE_USERS_FROM_RULES)."
+            echo "skip_rules=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "Skip list raw: $raw_list"
+          IFS=',' read -ra entries <<< "$raw_list"
+          u_lc="$(echo "$user" | tr '[:upper:]' '[:lower:]')"
+          for e in "${entries[@]}"; do
+            candidate="$(echo "$e" | xargs | tr '[:upper:]' '[:lower:]')"
+            [ -z "$candidate" ] && continue
+            if [ "$u_lc" = "$candidate" ]; then
+              echo "User $user matched skip list entry '$candidate'. Skipping static analysis steps."
+              echo "skip_rules=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          done
+          echo "User $user not in skip list."
+          echo "skip_rules=false" >> $GITHUB_OUTPUT
+
+      - name: Get email by username
+        if: ${{ inputs.user-map-for-deployments }}
+        run: |
+          username="${{ github.actor }}"
+          echo "Looking up email for user: $username"
+
+          echo "Full map content:"
+          echo "$DEPLOYMENT_USER_MAP" | jq .
+
+          email=$(echo "$DEPLOYMENT_USER_MAP" | jq -r --arg user "$username" '.[$user]')
+          if [ "$email" != "null" ]; then
+            echo "Email for $username is $email"
+          else
+            echo "No email found for $username"
+          fi
+        env:
+          DEPLOYMENT_USER_MAP: ${{ vars.DEPLOYMENT_USER_MAP }}
+
+      - name: Determine Deployment User
+        id: resolve-user
+        run: |
+          if ${{ inputs.user-map-for-deployments }}; then
+            echo "[INFO] Mapping enabled. Checking for mapped user."
+            username="${{ github.actor }}"
+            email=$(echo "$DEPLOYMENT_USER_MAP" | jq -r --arg user "$username" '.[$user]')
+
+            if [ "$email" != "null" ] && [ -n "$email" ]; then
+              echo "Using mapped deployment user: $email"
+              echo "DEPLOYMENT_USER_RESOLVED=$email" >> $GITHUB_ENV
+            else
+              echo "Mapped email not found. Falling back to secret."
+              echo "DEPLOYMENT_USER_RESOLVED=${{ secrets.DEPLOYMENT_USER }}" >> $GITHUB_ENV
+            fi
+          else
+            echo "[INFO] Mapping not enabled. Using secret."
+            echo "DEPLOYMENT_USER_RESOLVED=${{ secrets.DEPLOYMENT_USER }}" >> $GITHUB_ENV
+          fi
+        env:
+          DEPLOYMENT_USER_MAP: ${{ vars.DEPLOYMENT_USER_MAP }}
+
+      - name: Setup Salesforce Environment
+        uses: ./.github/actions/setup-salesforce
+      - name: Use ticket extractor action
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' }}
+        uses: ./.github/actions/extract-git-commits-tickets
+        id: tickets
+
+      - name: Debug ticket outputs
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' }}
+        run: |
+          echo "has-tickets: ${{ steps.tickets.outputs.has-tickets }}"
+          echo "tickets: ${{ steps.tickets.outputs.tickets }}"
+
+      - name: Create No Tickets Message File
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' && steps.tickets.outputs.has-tickets == 'false' }}
+        run: |
+          echo "No tickets extracted. Failing PR, pls create a commit containing the ticket number, eg TKT-1234" > no_tickets_message.txt
+
+      - name: Post No Tickets Comment as PR Comment
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' && steps.tickets.outputs.has-tickets == 'false' }}
+        uses: ./.github/actions/post-sf-output
+        with:
+          output-file: ${{ github.workspace }}/no_tickets_message.txt
+          comment-label: "**No Tickets Extracted**"
+          issue-number: ${{ github.event.pull_request.number }}
+
+      - name: Fail if no tickets extracted
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' && steps.tickets.outputs.has-tickets == 'false' }}
+        run: |
+          echo "No tickets extracted. Failing PR, pls create a commit containing the ticket number, eg TKT-1234"
+          exit 1
+
+      - name: Install npm dependencies for status check
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' && steps.tickets.outputs.has-tickets == 'true'}}
+        run: |
+          cd ./.github/actions/jira-ticket-status-check
+          npm install
+      - name: Check Jira Ticket Statuses
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' && steps.tickets.outputs.has-tickets == 'true'}}
+        id: status_check
+        uses: ./.github/actions/jira-ticket-status-check
+        with:
+          jira_url: ${{ secrets.KERUN_JIRA_URL }}
+          jira_username: ${{ secrets.KERUN_JIRA_USERNAME }}
+          jira_api_token: ${{ secrets.KERUN_JIRA_ACCESS_API }}
+          jira_invalid_statuses: "Reopen,Refinement,New,Ready for Doing,Closed"
+          issue_keys: ${{ steps.tickets.outputs.tickets }}
+
+      - name: Create Invalid Status Summary File
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' && steps.status_check.outputs.invalid_validation_status == 'true' }}
+        run: |
+          echo "${{ steps.status_check.outputs.status_summary }}" > invalid_status_summary.txt
+
+      - name: Post Invalid Status Summary as PR Comment
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' && steps.status_check.outputs.invalid_validation_status == 'true' }}
+        uses: ./.github/actions/post-sf-output
+        with:
+          output-file: ${{ github.workspace }}/invalid_status_summary.txt
+          comment-label: "**Invalid Jira Ticket Statuses Found**"
+          issue-number: ${{ github.event.pull_request.number }}
+
+      - name: Fail if Invalid Ticket Statuses
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' && steps.status_check.outputs.invalid_validation_status == 'true' }}
+        run: |
+          echo "Invalid ticket statuses found. Stopping validation."
+          exit 1
+
+      - name: Skip notice (Jira and static analysis)
+        if: ${{ steps.rule-skip.outputs.skip_rules == 'true' }}
+        run: echo "Jira ticket validation and static analysis skipped for ${{ github.actor }}"
+
+      - name: "Create Delta Packages"
+        run: |
+          mkdir changed-sources
+          sf sgd source delta --to "HEAD" --from "HEAD~1" --output-dir changed-sources/ --generate-delta --source-dir force-app/
+          echo "[INFO] Diff generated"
+
+      - name: Update OAuth Policy Usernames
+        uses: ./.github/actions/update-oauth-policy-usernames
+        with:
+          environment: ${{ inputs.environment }}
+          changed-sources-dir: changed-sources
+
+      - name: Skip notice (static analysis)
+        if: ${{ steps.rule-skip.outputs.skip_rules == 'true' }}
+        run: echo "Static analysis steps skipped for ${{ github.actor }}"
+
+      - name: "Run Salesforce Code Analyzer - Apex and Flow Rules"
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' }}
+        run: |
+          echo "Checking changed sources directory:"
+          find changed-sources/force-app -name "*.cls" -o -name "*.trigger" -o -name "*.flow-meta.xml" 2>/dev/null | head -10 || echo "No Apex/Flow files found in changed sources"
+
+          # Only run PMD on Apex and Flow files, not JavaScript/LWC
+          echo "Running Code Analyzer with custom PMD rules (Apex and Flow only)..."
+
+          # Check if there are any Apex or Flow files to analyze
+          APEX_FLOW_FILES=$(find changed-sources/force-app \( -name "*.cls" -o -name "*.trigger" -o -name "*.flow-meta.xml" \) 2>/dev/null)
+
+          if [ -n "$APEX_FLOW_FILES" ]; then
+            # Run PMD only on Apex/Flow files by targeting specific file patterns
+            sf code-analyzer run \
+              --target "changed-sources/force-app/**/*.cls,changed-sources/force-app/**/*.trigger,changed-sources/force-app/**/*.flow-meta.xml" \
+              --config-file static-code-analysis-rules/code-analyzer.yml \
+              --rule-selector pmd \
+              --output-file pmd-results-main.sarif
+          else
+            echo "No Apex or Flow files found. Creating empty SARIF file."
+            echo '{"$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","version":"2.1.0","runs":[{"tool":{"driver":{"name":"PMD","version":"7.0.0"}},"results":[]}]}' > pmd-results-main.sarif
+          fi
+
+          echo "Checking if SARIF file was created:"
+          ls -la pmd-results-main.sarif || echo "No SARIF file found"
+
+          echo "SARIF content preview:"
+          head -20 pmd-results-main.sarif 2>/dev/null || echo "Cannot preview SARIF content"
+
+      - name: "Run Custom Metadata Validator"
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' }}
+        id: metadata-validation
+        uses: ./.github/actions/custom-metadata-scanner
+        with:
+          target-directory: "changed-sources/force-app"
+          config-file: "static-code-analysis-rules/custom-metadata-validation-config.json"
+          output-format: "sarif"
+          output-file: "pmd-results-fields.sarif"
+          fail-on-error: false
+          verbose: false
+
+      - name: "Merge PMD Results"
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' }}
+        run: |
+          jq -s '
+            {
+              "$schema": .[0]."$schema",
+              "version": .[0].version,
+              "runs": [.[0].runs[], .[1].runs[]]
+            }
+          ' pmd-results-main.sarif pmd-results-fields.sarif > pmd-results.sarif
+
+      - name: Parse SARIF and Extract PMD Results
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' }}
+        id: parse-sarif
+        run: |
+          jq -r '
+            .runs[].results[] |
+            "\(.message.text) (Rule: \(.ruleId)) at \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine)"
+          ' pmd-results.sarif | nl > parsed_pmd_with_line_numbers.txt
+
+      - name: Post PMD results as PR comment
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' }}
+        uses: ./.github/actions/post-sf-output
+        with:
+          output-file: ${{ github.workspace }}/parsed_pmd_with_line_numbers.txt
+          comment-label: "**PMD Result**"
+          issue-number: ${{ github.event.pull_request.number }}
+
+      - name: "Check for Vulnerabilities"
+        if: ${{ steps.rule-skip.outputs.skip_rules != 'true' }}
+        run: |
+          VULNERABILITY_COUNT=$(jq '[.runs[].results[]] | length' pmd-results.sarif)
+          echo "Total violations found: $VULNERABILITY_COUNT"
+
+          if [ "$VULNERABILITY_COUNT" -gt 0 ]; then
+            echo "[INFO] Vulnerabilities found. Deployment aborted."
+            exit 1
+          else
+            echo "[INFO] No vulnerabilities found. Proceeding with deployment."
+          fi
+
+      - name: Authenticate to Salesforce
+        uses: ./.github/actions/authenticate-salesforce
+        with:
+          jwt-server-key: ${{ secrets.JWT_SERVER_KEY }}
+          deployment-user: ${{ env.DEPLOYMENT_USER_RESOLVED }}
+          consumer-key: ${{ secrets.CONSUMER_KEY }}
+          instance-url: ${{ vars.INSTANCE_URL }}
+
+      - name: "Validate to ${{ inputs.environment }} (All Local Tests with Destructive Changes)"
+        id: sf-validate
+        run: |
+          # Run deploy validate and capture output, continuing even on failure
+          # We use || true to ensure the step doesn't fail, allowing us to capture the exit code
+          set +e  # Temporarily disable exit on error
+          sf project deploy validate \
+            -x changed-sources/package/package.xml \
+            --post-destructive-changes changed-sources/destructiveChanges/destructiveChanges.xml \
+            --ignore-warnings 2>&1 | tee sf_output.txt
+          # Capture the exit code of the sf command from the pipeline
+          DEPLOY_EXIT_CODE=${PIPESTATUS[0]:-0}
+          set -e  # Re-enable exit on error
+
+          echo "SF_EXIT_CODE=$DEPLOY_EXIT_CODE" >> $GITHUB_ENV
+          echo "sf_exit_code=$DEPLOY_EXIT_CODE" >> $GITHUB_OUTPUT
+
+          # Always exit 0 from this step so subsequent steps run
+          exit 0
+
+      - name: Extract Deploy ID and Construct Setup URL
+        if: steps.sf-validate.outcome != 'skipped'
+        id: get-deploy-url
+        run: |
+          DEPLOY_ID=$(grep -Eo 'Deploy ID: [a-zA-Z0-9]{15,18}' sf_output.txt | awk '{print $3}' | head -n1)
+
+          INSTANCE_URL="${{ vars.INSTANCE_URL }}"
+
+          if [ -n "$DEPLOY_ID" ]; then
+            ENCODED_ADDRESS="/changemgmt/monitorDeploymentsDetails.apexp?asyncId=${DEPLOY_ID}&retURL=%2Fchangemgmt%2FmonitorDeployment.apexp"
+            ENCODED_ADDRESS=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${ENCODED_ADDRESS}', safe=''))")
+            DEPLOY_URL="${INSTANCE_URL}/lightning/setup/DeployStatus/page?address=${ENCODED_ADDRESS}"
+
+            echo "Deployment Setup URL: $DEPLOY_URL"
+            echo "DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
+          else
+            echo "Could not extract deploy ID from sf_output.txt"
+            echo "DEPLOY_URL=https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          fi
+
+      - name: Post SF CLI output as PR comment
+        if: steps.sf-validate.outcome != 'skipped'
+        uses: ./.github/actions/post-sf-output
+        with:
+          output-file: ${{ github.workspace }}/sf_output.txt
+          comment-label: |
+            **Salesforce Validation Result**
+
+            [View Deployment in Salesforce](${{ env.DEPLOY_URL }})
+          issue-number: ${{ github.event.pull_request.number }}
+
+      - name: Fail if validation failed
+        run: |
+          # Use the exit code emitted as a step output by the sf-validate step
+          SF_EXIT_CODE="${{ steps.sf-validate.outputs.sf_exit_code }}"
+          # Default to success (0) if SF_EXIT_CODE is empty or unset
+          SF_EXIT_CODE=${SF_EXIT_CODE:-0}
+          echo "Salesforce validation exit code: $SF_EXIT_CODE"
+          if [ "$SF_EXIT_CODE" -ne 0 ]; then
+            echo "Validation failed (exit code $SF_EXIT_CODE). Failing job after posting logs."
+            exit $SF_EXIT_CODE
+          fi

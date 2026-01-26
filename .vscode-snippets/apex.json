@@ -1,0 +1,107 @@
+{
+    "Method - beforeInsert": {
+      "prefix": "beforeinsert",
+      "body": [
+        "public void beforeInsert(List<SObject> triggerNew) {",
+        "    ${1:// TODO: implement before insert logic}",
+        "}"
+      ],
+      "description": "Method for TriggerAction.BeforeInsert"
+    },
+  
+    "Method - afterInsert": {
+      "prefix": "afterinsert",
+      "body": [
+        "public void afterInsert(List<SObject> triggerNew) {",
+        "    ${1:// TODO: implement after insert logic}",
+        "}"
+      ],
+      "description": "Method for TriggerAction.AfterInsert"
+    },
+  
+    "Method - beforeUpdate": {
+      "prefix": "beforeupdate",
+      "body": [
+        "public void beforeUpdate(List<SObject> triggerNew, List<SObject> triggerOld) {",
+        "    ${1:// TODO: implement before update logic}",
+        "}"
+      ],
+      "description": "Method for TriggerAction.BeforeUpdate"
+    },
+  
+    "Method - afterUpdate": {
+      "prefix": "afterupdate",
+      "body": [
+        "public void afterUpdate(List<SObject> triggerNew, List<SObject> triggerOld) {",
+        "    ${1:// TODO: implement after update logic}",
+        "}"
+      ],
+      "description": "Method for TriggerAction.AfterUpdate"
+    },
+  
+    "Method - beforeDelete": {
+      "prefix": "beforedelete",
+      "body": [
+        "public void beforeDelete(List<SObject> triggerOld) {",
+        "    ${1:// TODO: implement before delete logic}",
+        "}"
+      ],
+      "description": "Method for TriggerAction.BeforeDelete"
+    },
+  
+    "Method - afterDelete": {
+      "prefix": "afterdelete",
+      "body": [
+        "public void afterDelete(List<SObject> triggerOld) {",
+        "    ${1:// TODO: implement after delete logic}",
+        "}"
+      ],
+      "description": "Method for TriggerAction.AfterDelete"
+    },
+  
+    "Method - afterUndelete": {
+      "prefix": "afterundelete",
+      "body": [
+        "public void afterUndelete(List<SObject> triggerNew) {",
+        "    ${1:// TODO: implement after undelete logic}",
+        "}"
+      ],
+      "description": "Method for TriggerAction.AfterUndelete"
+    },
+  
+    "Method - dmlfinalizer": {
+      "prefix": "dmlfinalizer",
+      "body": [
+        "public void execute(FinalizerHandler.Context context) {",
+        "    ${1:// TODO: implement finalizer logic}",
+        "}"
+      ],
+      "description": "Method for TriggerAction.DmlFinalizer"
+    },
+    "Apex Batch Class": {
+      "prefix": "batchclass",
+      "body": [
+        "public class ${1:MyBatchClass} implements Database.Batchable<SObject> {",
+        "",
+        "    public Database.QueryLocator start(Database.BatchableContext BC) {",
+        "        // TODO: Implement start method to query data for batch processing",
+        "        return Database.getQueryLocator('SELECT Id FROM ${2:ObjectName} WHERE ${3:Conditions}');",
+        "    }",
+        "",
+        "    public void execute(Database.BatchableContext BC, List<SObject> scope) {",
+        "        // TODO: Implement execute method to process the batch records",
+        "        for (SObject record : scope) {",
+        "            // Add your logic here for processing each record",
+        "        }",
+        "    }",
+        "",
+        "    public void finish(Database.BatchableContext BC) {",
+        "        // TODO: Implement finish method to perform post-batch operations, like sending an email notification",
+        "        System.debug('Batch process finished');",
+        "    }",
+        "}"
+      ],
+      "description": "Apex Batch Class Template"
+    }
+  }
+  

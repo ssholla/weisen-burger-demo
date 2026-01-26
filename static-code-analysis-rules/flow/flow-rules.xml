@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         name="Custom Apex Rules"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+
+    <description>Custom Ruleset to use with PMD</description>
+
+    <include-pattern>.*/flows/.*</include-pattern>
+
+    <rule name="ExcessiveFlowLength" language="xml" message="Excessive Flow length."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <description>Excessive Flow length.</description>
+        <priority>2</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //document/Flow[pmd:endLine(.) > 2000]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="FlowRequiresDescription" language="xml" message="Add a description to explain the Flow."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <description>Add a description to explain the Flow.</description>
+        <priority>2</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //document/Flow[not(description)]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="FlowDraft" language="xml" message="Flow should be active."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <description>Flow should be active.</description>
+        <priority>3</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //document/Flow/status/text[@Text = 'Draft']
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="QueryInFlowLoop" language="xml" message="SOQL and DML Operations shouldn't be done inside of Flow loops."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <description>SOQL and DML Operations shouldn&apos;t be done inside of Flow loops.</description>
+        <priority>2</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    (
+                        //Flow/loops[nextValueConnector/targetReference/text/@Text = //Flow/(recordLookups|recordCreates|recordDeletes|recordUpdates)/name/text/@Text]
+                        |
+                        (for $node in //Flow/loops,
+                             $target1 in //Flow/*[name/text/@Text = $node/(connector|defaultConnector)/targetReference/text/@Text]
+                         return $node[//Flow/(recordLookups|recordCreates|recordDeletes|recordUpdates)[name/text/@Text = $target1//targetReference/text/@Text]]
+                        )
+                        |
+                        (for $node in //Flow/loops,
+                             $target1 in //Flow/*[name/text/@Text = $node/(connector|defaultConnector)/targetReference/text/@Text],
+                             $target2 in //Flow/*[name/text/@Text = $target1/(connector|defaultConnector)/targetReference/text/@Text]
+                         return $node[//Flow/(recordLookups|recordCreates|recordDeletes|recordUpdates)[name/text/@Text = $target2//targetReference/text/@Text]]
+                        )
+                        |
+                        (for $node in //Flow/loops,
+                             $target1 in //Flow/*[name/text/@Text = $node/(connector|defaultConnector)/targetReference/text/@Text],
+                             $target2 in //Flow/*[name/text/@Text = $target1/(connector|defaultConnector)/targetReference/text/@Text],
+                             $target3 in //Flow/*[name/text/@Text = $target2/(connector|defaultConnector)/targetReference/text/@Text]
+                         return $node[//Flow/(recordLookups|recordCreates|recordDeletes|recordUpdates)[name/text/@Text = $target3//targetReference/text/@Text]]
+                        )
+                        |
+                        (for $node in //Flow/loops,
+                             $target1 in //Flow/*[name/text/@Text = $node/(connector|defaultConnector)/targetReference/text/@Text],
+                             $target2 in //Flow/*[name/text/@Text = $target1/(connector|defaultConnector)/targetReference/text/@Text],
+                             $target3 in //Flow/*[name/text/@Text = $target2/(connector|defaultConnector)/targetReference/text/@Text],
+                             $target4 in //Flow/*[name/text/@Text = $target3/(connector|defaultConnector)/targetReference/text/@Text]
+                         return $node[//Flow/(recordLookups|recordCreates|recordDeletes|recordUpdates)[name/text/@Text = $target4//targetReference/text/@Text]]
+                        )
+                    )
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="UnusedVariableInFlow" language="xml" message="Delete the variable if unused"
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <description>Delete the variable if unused.</description>
+        <priority>2</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    (for $node in //variables
+                     return $node[count(//text[contains(@Text, $node/name/text/@Text)]) < 2 
+                                  and not($node/name/text/@Text = ('record', 'recordPrior'))])
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="SetBypassFlow" language="xml" message="A bypass should be set in record-triggered flow."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <description>A bypass should be set in record-triggered flow.</description>
+        <priority>2</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //document[not(//decisions//leftValueReference/text[contains([@Text], 'ByPass')]) 
+                    and 
+                    //processType/text[@Text = 'Workflow']]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="HardcodeIdFlow" language="xml" message="If it is an Id, do not hardcode it."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <description>If it is an Id, do not hardcode it.</description>
+        <priority>5</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //stringValue/text[string-length(@Text) = 15 and matches(@Text, '^[a-zA-Z0-9]+$')]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="RecordLookupMissingQueriedFields" language="xml" message="Ensure that recordLookups contain at least one queriedFields element."
+        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <description>Ensure that recordLookups contain at least one queriedFields element.</description>
+        <priority>3</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //recordLookups[not(queriedFields)]
+                ]]></value>
+            </property>
+        </properties>
+    </rule>
+
+</ruleset>

@@ -1,0 +1,153 @@
+name: Action Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      case-comment-creation:
+        required: true
+        type: boolean
+      user-map-for-deployments:
+        required: true
+        type: boolean
+    secrets:
+      JWT_SERVER_KEY:
+        required: true
+      DEPLOYMENT_USER:
+        required: true
+      CONSUMER_KEY:
+        required: true
+      KERUN_ORG_JWT_SERVER_KEY:
+        required: true
+      KERUN_ORG_DEPLOYMENT_USER:
+        required: true
+      KERUN_ORG_CONSUMER_KEY:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to ${{ inputs.environment }}
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get email by username
+        if: ${{ inputs.user-map-for-deployments }}
+        run: |
+          username="${{ github.actor }}"
+          echo "Looking up email for user: $username"
+
+          echo "Full map content:"
+          echo "$DEPLOYMENT_USER_MAP" | jq .
+
+          email=$(echo "$DEPLOYMENT_USER_MAP" | jq -r --arg user "$username" '.[$user]')
+          if [ "$email" != "null" ]; then
+            echo "Email for $username is $email"
+          else
+            echo "No email found for $username"
+          fi
+        env:
+          DEPLOYMENT_USER_MAP: ${{ vars.DEPLOYMENT_USER_MAP }}
+
+      - name: Determine Deployment User
+        id: resolve-user
+        run: |
+          if ${{ inputs.user-map-for-deployments }}; then
+            echo "[INFO] Mapping enabled. Checking for mapped user."
+            username="${{ github.actor }}"
+            email=$(echo "$DEPLOYMENT_USER_MAP" | jq -r --arg user "$username" '.[$user]')
+
+            if [ "$email" != "null" ] && [ -n "$email" ]; then
+              echo "Using mapped deployment user: $email"
+              echo "DEPLOYMENT_USER_RESOLVED=$email" >> $GITHUB_ENV
+            else
+              echo "Mapped email not found. Falling back to secret."
+              echo "DEPLOYMENT_USER_RESOLVED=${{ secrets.DEPLOYMENT_USER }}" >> $GITHUB_ENV
+            fi
+          else
+            echo "[INFO] Mapping not enabled. Using secret."
+            echo "DEPLOYMENT_USER_RESOLVED=${{ secrets.DEPLOYMENT_USER }}" >> $GITHUB_ENV
+          fi
+        env:
+          DEPLOYMENT_USER_MAP: ${{ vars.DEPLOYMENT_USER_MAP }}
+
+      - name: Setup Salesforce Environment
+        uses: ./.github/actions/setup-salesforce
+
+      - name: "Create Delta Packages"
+        run: |
+          mkdir changed-sources
+          sf sgd source delta --to "HEAD" --from "HEAD~1" --output-dir changed-sources/ --generate-delta --source-dir force-app/
+          echo "[INFO] Diff generated"
+
+      - name: Update OAuth Policy Usernames
+        uses: ./.github/actions/update-oauth-policy-usernames
+        with:
+          environment: ${{ inputs.environment }}
+          changed-sources-dir: changed-sources
+
+      - name: Authenticate to Salesforce
+        uses: ./.github/actions/authenticate-salesforce
+        with:
+          jwt-server-key: ${{ secrets.JWT_SERVER_KEY }}
+          deployment-user: ${{ env.DEPLOYMENT_USER_RESOLVED }}
+          consumer-key: ${{ secrets.CONSUMER_KEY }}
+          instance-url: ${{ vars.INSTANCE_URL }}
+
+      - name: "Deploy to ${{ inputs.environment }} (All Local Tests with Destructive Changes)"
+        run: |
+          sf project deploy start \
+            -x changed-sources/package/package.xml \
+            --post-destructive-changes changed-sources/destructiveChanges/destructiveChanges.xml \
+            --ignore-warnings --ignore-conflicts | tee sf_output.txt
+
+      - name: Read package.xml and store as output
+        id: read-package
+        run: |
+          CONTENT=$(cat changed-sources/package/package.xml)
+          echo "package_content<<EOF" >> $GITHUB_OUTPUT
+          echo "$CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Use ticket extractor action
+        uses: ./.github/actions/extract-git-commits-tickets
+        id: tickets
+
+      - name: Update Salesforce Cases
+        if: ${{ steps.tickets.outputs.has-tickets && inputs.case-comment-creation }}
+        uses: ./.github/actions/update-sf-cases-by-ticket
+        with:
+          kerun-instance-url: ${{ vars.KERUN_INSTANCE_URL }}
+          jwt-server-key: ${{ secrets.KERUN_ORG_JWT_SERVER_KEY }}
+          deployment-user: ${{ secrets.KERUN_ORG_DEPLOYMENT_USER }}
+          consumer-key: ${{ secrets.KERUN_ORG_CONSUMER_KEY }}
+          case-comment-body: ${{ steps.read-package.outputs.package_content }}
+          tickets: ${{steps.tickets.outputs.tickets}}
+
+      - name: Install npm dependencies
+        run: |
+          cd ./.github/actions/jira-ticket-update
+          npm install
+
+      - name: Update Jira status
+        if: ${{ steps.tickets.outputs.has-tickets }}
+        uses: ./.github/actions/jira-ticket-update
+        with:
+          jira_url: ${{ secrets.KERUN_JIRA_URL }}
+          jira_username: ${{ secrets.KERUN_JIRA_USERNAME }}
+          jira_api_token: ${{ secrets.KERUN_JIRA_ACCESS_API }}
+          issue_keys: ${{steps.tickets.outputs.tickets}}
+          status_name: ${{ vars.KERUN_ONE_CASE_STATUS }}
+
+      - name: Retrigger PRs after deployment
+        uses: ./.github/actions/retrigger-prs
+        with:
+          target-branch: ${{ github.ref_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}

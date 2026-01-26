@@ -1,0 +1,56 @@
+name: "Extract Jira Ticket Numbers"
+description: "Parses commit messages for ticket numbers within the current PR or latest push and outputs them as a comma-separated string."
+
+outputs:
+  tickets:
+    description: "Comma-separated list of extracted Jira ticket numbers"
+    value: ${{ steps.extract-tickets.outputs.tickets }}
+  has-tickets:
+    description: "Boolean indicating whether ticket numbers were found"
+    value: ${{ steps.extract-tickets.outputs.has-tickets }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  
+
+    - name: Extract ticket numbers from commits
+      id: extract-tickets
+      shell: bash
+      run: |
+        echo "Parsing commit messages..."
+
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          PR_SHA="${{ github.event.pull_request.head.sha }}"
+        else
+          echo "Detected push event. Using last two commits."
+          BASE_SHA=$(git rev-parse HEAD^1)
+          PR_SHA=$(git rev-parse HEAD)
+        fi
+
+        echo "Base commit: $BASE_SHA"
+        echo "PR head commit: $PR_SHA"
+
+        PR_COMMITS=$(git log --pretty=format:%s "$BASE_SHA..$PR_SHA")
+        echo "Commit messages:"
+        echo "$PR_COMMITS"
+
+        echo "$PR_COMMITS" | grep -oiE '[A-Z0-9]+-[0-9]+' | sort -u > ticket_numbers.txt || true
+
+        if [ ! -s ticket_numbers.txt ]; then
+          echo "No ticket numbers found."
+          TICKETS=""
+          HAS_TICKETS=false
+        else
+          echo "Found ticket numbers:"
+          cat ticket_numbers.txt
+          TICKETS=$(cat ticket_numbers.txt | paste -sd, -)
+          HAS_TICKETS=true
+        fi
+
+        echo "tickets=$TICKETS" >> "$GITHUB_OUTPUT"
+        echo "has-tickets=$HAS_TICKETS" >> "$GITHUB_OUTPUT"

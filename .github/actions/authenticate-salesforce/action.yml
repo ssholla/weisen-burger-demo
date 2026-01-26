@@ -1,0 +1,45 @@
+name: Authenticate to Salesforce
+description: Authenticates to Salesforce using JWT flow and sets it as default org
+inputs:
+  jwt-server-key:
+    description: 'JWT Server Key for authentication'
+    required: true
+  deployment-user:
+    description: 'Salesforce username for deployment'
+    required: true
+  consumer-key:
+    description: 'Connected App Consumer Key'
+    required: true
+  instance-url:
+    description: 'Salesforce instance URL'
+    required: true
+  set-dev-hub:
+    description: 'Whether to set as default dev hub'
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: 'Authenticate to Salesforce'
+      run: |
+        KEY_FILE="server.key"
+        echo "${{ inputs.jwt-server-key }}" > "$KEY_FILE"
+        
+        AUTH_COMMAND="sf org login jwt \
+          --username ${{ inputs.deployment-user }} \
+          --jwt-key-file $KEY_FILE \
+          --client-id ${{ inputs.consumer-key }} \
+          --instance-url ${{ inputs.instance-url }} \
+          --set-default"
+        
+        if [ "${{ inputs.set-dev-hub }}" = "true" ]; then
+          AUTH_COMMAND="$AUTH_COMMAND --set-default-dev-hub"
+        fi
+        
+        eval $AUTH_COMMAND
+        
+        rm -f "$KEY_FILE"
+        
+        echo "✅ Successfully authenticated to Salesforce"
+      shell: bash

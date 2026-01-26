@@ -1,0 +1,98 @@
+name: Run Script
+
+on:
+  workflow_dispatch:
+    inputs:
+      script_type:
+        description: "Type of script to run"
+        required: true
+        type: choice
+        options:
+          - apex
+          - playwright
+      script_path:
+        description: "Path to Apex/Playwright Script (e.g., scripts/scripts-ci/script.apex)"
+        required: false
+        type: string
+      environment:
+        description: "Salesforce Environment"
+        required: true
+        type: choice
+        options:
+          - ci
+          - uat
+          - prod
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    name: Run ${{ inputs.script_type }} Script
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Salesforce Environment
+        uses: ./.github/actions/setup-salesforce
+
+      - name: Authenticate to Salesforce
+        uses: ./.github/actions/authenticate-salesforce
+        with:
+          jwt-server-key: ${{ secrets.JWT_SERVER_KEY }}
+          deployment-user: ${{ secrets.DEPLOYMENT_USER }}
+          consumer-key: ${{ secrets.CONSUMER_KEY }}
+          instance-url: ${{ vars.INSTANCE_URL }}
+          set-dev-hub: 'true'
+
+      # Apex Script Section
+      - name: Check if Apex Script Exists
+        if: inputs.script_type == 'apex'
+        run: |
+          if [ ! -f "${{ inputs.script_path }}" ]; then
+            echo "ERROR: Apex script not found at ${{ inputs.script_path }}";
+            exit 1;
+          fi
+
+      - name: Run Apex Script
+        if: inputs.script_type == 'apex'
+        run: |
+          cp "${{ inputs.script_path }}" temp_script.apex
+          sf apex run --file temp_script.apex --target-org ${{ secrets.DEPLOYMENT_USER }}
+
+      # Playwright Script Section
+      - name: Setup Playwright (Playwright)
+        if: inputs.script_type == 'playwright'
+        uses: ./.github/actions/setup-playwright
+
+      - name: Check if Playwright test file exists
+        if: inputs.script_type == 'playwright'
+        run: |
+          echo "Script path: ${{ inputs.script_path }}"
+          echo "Working directory: $(pwd)"
+          echo "Contents of scripts/playwright/:"
+          ls -la scripts/playwright/ || echo "scripts/playwright/ directory not found"
+          if [ ! -f "${{ inputs.script_path }}" ]; then
+            echo "ERROR: Playwright test file not found at ${{ inputs.script_path }}";
+            exit 1;
+          fi
+          echo "✅ Test file found at ${{ inputs.script_path }}"
+
+      - name: Run specific Playwright test
+        if: inputs.script_type == 'playwright'
+        working-directory: e2e
+        run: |
+          # Copy test file to e2e directory so it can find @playwright/test
+          cp ../${{ inputs.script_path }} ./temp-test.spec.ts
+          npx playwright test temp-test.spec.ts
+        env:
+          ORG_NAME: ${{ secrets.DEPLOYMENT_USER }}
+
+      - name: Upload test results
+        if: inputs.script_type == 'playwright'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: e2e/test-results/

@@ -1,0 +1,26 @@
+name: 'Jira Ticket Status Check'
+description: 'Check the status of Jira tickets'
+inputs:
+  jira_url:
+    description: 'Jira base URL'
+    required: true
+  jira_username:
+    description: 'Jira username'
+    required: true
+  jira_api_token:
+    description: 'Jira API token'
+    required: true
+  jira_invalid_statuses:
+    description: 'Comma-separated list of invalid statuses (e.g., "Done,Closed")'
+    required: true
+  issue_keys:
+    description: 'Comma-separated list of issue keys'
+    required: true
+outputs:
+  invalid_validation_status:
+    description: 'True if any ticket has an invalid status, false otherwise'
+  status_summary:
+    description: 'Summary of all ticket statuses'
+runs:
+  using: 'node16'
+  main: 'index.js'

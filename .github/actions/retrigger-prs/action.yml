@@ -1,0 +1,162 @@
+name: Retrigger PRs
+description: Retriggers workflows for open PRs targeting a specific branch
+inputs:
+  target-branch:
+    description: 'Target branch to retrigger PRs for'
+    required: true
+  github-token:
+    description: 'GitHub token for API operations'
+    required: true
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Find and retrigger open PRs
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        target_branch="${{ inputs.target-branch }}"
+        echo "Finding PRs targeting branch: $target_branch"
+        
+        # Get open PRs targeting the branch using REST API
+        prs=$(gh api "repos/${{ github.repository }}/pulls" \
+          --jq "[.[] | select(.base.ref == \"$target_branch\" and .state == \"open\")] | {pulls: ., count: length}")
+        echo "Found PRs: $prs"
+        
+        # Extract PR numbers and count
+        pr_numbers=$(echo "$prs" | jq -r '.pulls[].number' | tr '\n' ' ')
+        pr_count=$(echo "$prs" | jq -r '.count')
+        
+        echo "PR numbers: $pr_numbers"
+        echo "PR count: $pr_count"
+        
+        if [ "$pr_count" -eq 0 ]; then
+          echo "✅ No open PRs found targeting branch '$target_branch'"
+          exit 0
+        fi
+        
+        echo "Retriggering workflows for PRs targeting $target_branch: $pr_numbers"
+
+        
+        for pr_number in $pr_numbers; do
+          echo "Processing PR #$pr_number"
+          
+          # Get PR details using REST API
+          pr_info=$(gh api "repos/${{ github.repository }}/pulls/$pr_number")
+          head_ref=$(echo "$pr_info" | jq -r '.head.ref')
+          pr_title=$(echo "$pr_info" | jq -r '.title')
+          pr_author=$(echo "$pr_info" | jq -r '.user.login')
+          is_fork=$(echo "$pr_info" | jq -r '.head.repo.full_name != .base.repo.full_name')
+          head_repo=$(echo "$pr_info" | jq -r '.head.repo.full_name')
+          
+          echo "  - PR #$pr_number: '$pr_title' by $pr_author (branch: $head_ref)"
+          echo "  - Head repository: $head_repo"
+          echo "  - Is cross-repository: $is_fork"
+          
+          # Skip if PR is from a fork (we can't push to forks)
+          if [ "$is_fork" = "true" ]; then
+            echo "  - ⚠️  Skipping fork PR - cannot push to external repository"
+            gh api "repos/${{ github.repository }}/issues/$pr_number/comments" \
+              --field body="🔄 **Retrigger Needed**: Please push an empty commit to retrigger workflows due to changes in target branch \`$target_branch\`"
+            continue
+          fi
+          
+          # Get the latest commit SHA from the PR branch
+          latest_commit=$(gh api "repos/${{ github.repository }}/pulls/$pr_number" --jq '.head.sha')
+          echo "  - Latest commit: $latest_commit"
+          
+          # Method 1: Try to retrigger workflows via API first
+          echo "  - Attempting to retrigger workflows via GitHub API"
+          
+          # Get workflow runs for this PR
+          workflow_runs=$(gh api "repos/${{ github.repository }}/actions/runs" \
+            --jq ".workflow_runs[] | select(.pull_requests[]?.number == $pr_number and .status == \"completed\") | .id" \
+            | head -3)
+          
+          retrigger_success=false
+          if [ -n "$workflow_runs" ]; then
+            echo "  - Found workflow runs to retrigger: $workflow_runs"
+            for run_id in $workflow_runs; do
+              echo "    - Retriggering run $run_id"
+              if gh api "repos/${{ github.repository }}/actions/runs/$run_id/rerun" -X POST 2>/dev/null; then
+                echo "    - ✅ Successfully retriggered run $run_id"
+                retrigger_success=true
+              else
+                echo "    - ⚠️  Could not retrigger run $run_id (may be too old)"
+              fi
+            done
+          fi
+          
+          # If API retrigger failed, try the empty commit approach
+          if [ "$retrigger_success" = "false" ]; then
+            echo "  - API retrigger failed/unavailable, trying empty commit approach"
+            
+            # Configure git
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            
+            # Fetch and checkout the PR branch with error handling
+            echo "  - Fetching branch $head_ref from origin"
+            if ! git fetch origin "$head_ref"; then
+              echo "  - ❌ Failed to fetch branch $head_ref"
+              gh api "repos/${{ github.repository }}/issues/$pr_number/comments" \
+                --field body="🔄 **Retrigger Failed**: Could not fetch branch \`$head_ref\`. Please manually push an empty commit to retrigger workflows."
+              continue
+            fi
+            
+            echo "  - Checking out branch $head_ref"
+            if ! git checkout "$head_ref"; then
+              echo "  - ❌ Failed to checkout branch $head_ref"
+              gh api "repos/${{ github.repository }}/issues/$pr_number/comments" \
+                --field body="🔄 **Retrigger Failed**: Could not checkout branch \`$head_ref\`. Please manually push an empty commit to retrigger workflows."
+              continue
+            fi
+            
+            
+            # Create empty commit with retrigger message
+            echo "  - Creating empty commit"
+            commit_msg="retrigger: workflows after $target_branch update"
+            if ! git commit --allow-empty -m "$commit_msg"; then
+              echo "  - ❌ Failed to create empty commit"
+              gh api "repos/${{ github.repository }}/issues/$pr_number/comments" \
+                --field body="🔄 **Retrigger Failed**: Could not create empty commit. Please manually push an empty commit to retrigger workflows."
+              continue
+            fi
+            
+            # Push the empty commit
+            echo "  - Pushing empty commit to origin/$head_ref"
+            if ! git push origin "$head_ref"; then
+              echo "  - ❌ Failed to push empty commit - trying alternative method"
+              
+              # Alternative: Close and reopen PR (this always works)
+              echo "  - Trying close/reopen method as fallback"
+              gh api "repos/${{ github.repository }}/pulls/$pr_number" \
+                --method PATCH --field state="closed"
+              sleep 2
+              gh api "repos/${{ github.repository }}/pulls/$pr_number" \
+                --method PATCH --field state="open"
+              echo "  - ✅ PR closed and reopened to retrigger workflows"
+              gh api "repos/${{ github.repository }}/issues/$pr_number/comments" \
+                --field body="🔄 **Automatic Retrigger**: PR was closed and reopened to retrigger workflows due to changes in target branch \`$target_branch\`"
+            else
+              echo "  - ✅ Empty commit pushed successfully to retrigger workflows"
+              commit_sha=$(git rev-parse HEAD)
+              gh api "repos/${{ github.repository }}/issues/$pr_number/comments" \
+                --field body="🔄 **Automatic Retrigger**: Empty commit pushed to retrigger workflows due to changes in target branch \`$target_branch\`"
+            fi
+          else
+            echo "  - ✅ Workflows retriggered via GitHub API"
+            gh api "repos/${{ github.repository }}/issues/$pr_number/comments" \
+              --field body="🔄 **Automatic Retrigger**: Workflows retriggered via API due to changes in target branch \`$target_branch\`"
+          fi
+          
+        done
+        
+        echo "✅ Processed $pr_count PR(s) targeting branch '$target_branch'"
+        echo "📝 Added retrigger comments to notify about the workflow retrigger"
+        echo ""
+        echo "ℹ️  Note: This action automatically pushes empty commits to retrigger validations."
+        echo "   - For same-repo PRs: Empty commits are pushed automatically"
+        echo "   - For fork PRs: Comments are added asking authors to push commits"
+      shell: bash

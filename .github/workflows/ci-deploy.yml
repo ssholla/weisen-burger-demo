@@ -1,0 +1,23 @@
+name: Deploy to CI Environment
+
+on:
+  push:
+    branches: [ develop ]
+    paths:
+      - 'force-app/**'
+
+jobs:
+  
+  deploy-to-ci:
+    uses: ./.github/workflows/action-deploy.yml
+    with:
+      environment: ci
+      case-comment-creation: true
+      user-map-for-deployments: false
+    secrets: inherit
+    permissions:
+      actions: write
+      security-events: write 
+      contents: write
+      issues: write
+      pull-requests: write

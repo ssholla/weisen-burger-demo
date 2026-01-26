@@ -1,0 +1,58 @@
+name: 'SFDMU Data Import'
+description: 'Import data records to Salesforce using SFDMU plugin'
+
+inputs:
+  deployment_user:
+    description: 'Salesforce deployment username (target org)'
+    required: true
+  data_folder:
+    description: 'Path to the data folder containing CSV files'
+    required: true
+    default: 'data-seeding'
+
+outputs:
+  import_status:
+    description: 'Status of the SFDMU import operation'
+    value: ${{ steps.import.outputs.status }}
+  records_imported:
+    description: 'Number of records imported (if available)'
+    value: ${{ steps.import.outputs.records_count }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install and Verify SFDMU Plugin
+      shell: bash
+      run: |
+        echo "� Checking for SFDMU plugin..."
+        if sf plugins | grep -q sfdmu; then
+          echo "✅ SFDMU plugin already installed"
+        else
+          echo "📦 Installing SFDMU plugin..."
+          echo Y | sf plugins install sfdmu
+          echo "✅ SFDMU plugin installation completed"
+        fi
+        
+        # Final verification
+        echo "🔍 Final verification..."
+        sf plugins | grep sfdmu
+
+    - name: Import Data Records
+      id: import
+      shell: bash
+      run: |
+        echo "📊 Starting SFDMU data import..."
+        cd "${{ inputs.data_folder }}"
+        
+        # Run SFDMU import
+        if sf sfdmu run \
+          --sourceusername csvfile \
+          --targetusername "${{ inputs.deployment_user }}" \
+          --nowarnings; then
+          echo "✅ SFDMU import completed successfully"
+          echo "status=success" >> $GITHUB_OUTPUT
+        else
+          echo "❌ SFDMU import failed"
+          echo "status=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi

@@ -1,0 +1,325 @@
+name: Create Revert Package on Main Push
+
+on:
+  push:
+    branches: 
+      - main
+    paths:
+      - 'force-app/**'
+  workflow_dispatch:
+    inputs:
+      commit_range:
+        description: 'Commit range to create revert package for (e.g., HEAD~3..HEAD)'
+        required: false
+        default: 'HEAD~1..HEAD'
+
+jobs:
+  create-revert-package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          
+      - name: Get commit information
+        id: commit-info
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            commit_range="${{ github.event.inputs.commit_range }}"
+          else
+            # Get commits from this push
+            commit_range="${{ github.event.before }}..${{ github.event.after }}"
+          fi
+          
+          echo "commit_range=$commit_range" >> $GITHUB_OUTPUT
+          
+          # Get list of commits in this push
+          commits=$(git rev-list --reverse $commit_range)
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$commits" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Count commits
+          commit_count=$(echo "$commits" | wc -l | tr -d ' ')
+          echo "commit_count=$commit_count" >> $GITHUB_OUTPUT
+          
+          # Get short hash for naming
+          latest_commit=$(git rev-parse --short HEAD)
+          echo "latest_commit=$latest_commit" >> $GITHUB_OUTPUT
+          
+      - name: Create revert branch
+        id: create-branch
+        run: |
+          timestamp=$(date +"%Y%m%d_%H%M%S")
+          latest_commit="${{ steps.commit-info.outputs.latest_commit }}"
+          branch_name="revert-package-$latest_commit-$timestamp"
+          
+          echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
+          
+          # Create and switch to revert branch
+          git checkout -b "$branch_name"
+          git push origin "$branch_name"
+          
+          echo "✅ Created revert branch: $branch_name"
+          
+      - name: Generate revert commits
+        id: generate-reverts
+        run: |
+          commits="${{ steps.commit-info.outputs.commits }}"
+          commit_count="${{ steps.commit-info.outputs.commit_count }}"
+          
+          echo "Creating revert commits for $commit_count commits..."
+          
+          # Configure git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          revert_commits=""
+          failed_reverts=""
+          
+          # Process each commit in reverse order (newest first)
+          for commit_sha in $(echo "$commits" | tac); do
+            echo "Processing commit: $commit_sha"
+            
+            # Get commit info
+            commit_msg=$(git log -1 --pretty=format:"%s" $commit_sha)
+            commit_author=$(git log -1 --pretty=format:"%an" $commit_sha)
+            
+            echo "  - Message: $commit_msg"
+            echo "  - Author: $commit_author"
+            
+            # Check if this commit contains workflow files
+            workflow_files=$(git diff-tree --name-only $commit_sha | grep '^\.github/workflows/' || true)
+            
+            if [ -n "$workflow_files" ]; then
+              echo "  - 🚫 Skipping revert - commit contains workflow files: $workflow_files"
+              echo "  - ℹ️  Workflow file changes must be reverted manually due to GitHub token permissions"
+              failed_reverts="$failed_reverts$commit_sha "
+            else
+              # Try to create revert commit
+              if git revert --no-edit $commit_sha; then
+                revert_sha=$(git rev-parse HEAD)
+                echo "  - ✅ Created revert: $revert_sha"
+                revert_commits="$revert_commits$revert_sha "
+              else
+                echo "  - ⚠️  Failed to revert $commit_sha (likely merge conflicts)"
+                failed_reverts="$failed_reverts$commit_sha "
+                
+                # Reset any partial revert
+                git revert --abort 2>/dev/null || true
+                git reset --hard HEAD 2>/dev/null || true
+              fi
+            fi
+          done
+          
+          echo "revert_commits=$revert_commits" >> $GITHUB_OUTPUT
+          echo "failed_reverts=$failed_reverts" >> $GITHUB_OUTPUT
+          
+      - name: Create revert package manifest
+        run: |
+          branch_name="${{ steps.create-branch.outputs.branch_name }}"
+          revert_commits="${{ steps.generate-reverts.outputs.revert_commits }}"
+          failed_reverts="${{ steps.generate-reverts.outputs.failed_reverts }}"
+          commit_range="${{ steps.commit-info.outputs.commit_range }}"
+          
+          # Create package directory
+          mkdir -p revert-packages
+          
+          # Generate detailed timestamps
+          revert_timestamp=$(date +%Y%m%d_%H%M%S)
+          revert_date_full=$(date '+%Y-%m-%d at %H:%M:%S %Z')
+          revert_date_iso=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+          
+          # Create manifest file with timestamp
+          manifest_file="revert-packages/REVERT_MANIFEST_${revert_timestamp}.md"
+          
+          # Write manifest header with detailed date information
+          echo "# 🔄 Revert Package Manifest" > "$manifest_file"
+          echo "" >> "$manifest_file"
+          echo "## 📦 Package Information" >> "$manifest_file"
+          echo "- **Revert Date**: $revert_date_full" >> "$manifest_file"
+          echo "- **Revert Timestamp**: $revert_timestamp" >> "$manifest_file"
+          echo "- **ISO Timestamp**: $revert_date_iso" >> "$manifest_file"
+          echo "- **Source Branch**: main" >> "$manifest_file"
+          echo "- **Revert Branch**: $branch_name" >> "$manifest_file"
+          echo "- **Commit Range**: $commit_range" >> "$manifest_file"
+          echo "- **Triggered by**: ${{ github.actor }}" >> "$manifest_file"
+          echo "- **GitHub Run**: #${{ github.run_number }}" >> "$manifest_file"
+          echo "" >> "$manifest_file"
+          echo "## 🔄 Original Commits (to be reverted)" >> "$manifest_file"
+          
+          # Add original commit details
+          echo "${{ steps.commit-info.outputs.commits }}" | while read commit_sha; do
+            if [ -n "$commit_sha" ]; then
+              commit_msg=$(git log -1 --pretty=format:"%s" $commit_sha)
+              commit_author=$(git log -1 --pretty=format:"%an" $commit_sha)
+              commit_date=$(git log -1 --pretty=format:"%ad" --date=short $commit_sha)
+              echo "- \`$commit_sha\` - $commit_msg (by $commit_author on $commit_date)" >> "$manifest_file"
+            fi
+          done
+          
+          echo "" >> "$manifest_file"
+          echo "## ↩️  Revert Commits Created" >> "$manifest_file"
+          
+          if [ -n "$revert_commits" ]; then
+            for revert_sha in $revert_commits; do
+              if [ -n "$revert_sha" ]; then
+                commit_msg=$(git log -1 --pretty=format:"%s" $revert_sha)
+                echo "- \`$revert_sha\` - $commit_msg" >> "$manifest_file"
+              fi
+            done
+          else
+            echo "- No revert commits were created" >> "$manifest_file"
+          fi
+          
+          if [ -n "$failed_reverts" ]; then
+            echo "" >> "$manifest_file"
+            echo "## ⚠️  Failed Reverts (Manual Intervention Required)" >> "$manifest_file"
+            for failed_sha in $failed_reverts; do
+              if [ -n "$failed_sha" ]; then
+                commit_msg=$(git log -1 --pretty=format:"%s" $failed_sha)
+                workflow_files=$(git diff-tree --name-only $failed_sha | grep '^\.github/workflows/' || true)
+                if [ -n "$workflow_files" ]; then
+                  echo "- \`$failed_sha\` - $commit_msg (contains workflow files: $workflow_files)" >> "$manifest_file"
+                else
+                  echo "- \`$failed_sha\` - $commit_msg (merge conflicts detected)" >> "$manifest_file"
+                fi
+              fi
+            done
+            echo "" >> "$manifest_file"
+            echo "### 📋 Manual Revert Instructions for Failed Commits:" >> "$manifest_file"
+            echo "1. **Workflow files**: Must be reverted manually in a separate PR with appropriate permissions" >> "$manifest_file"
+            echo "2. **Merge conflicts**: Resolve conflicts and create manual revert commits" >> "$manifest_file"
+          fi
+          
+          # Add deployment instructions
+          echo "" >> "$manifest_file"
+          echo "## 🚀 How to Deploy This Revert Package" >> "$manifest_file"
+          echo "" >> "$manifest_file"
+          echo "### Option 1: Deploy Entire Revert Branch" >> "$manifest_file"
+          echo "\`\`\`bash" >> "$manifest_file"
+          echo "# Deploy the revert branch to your org" >> "$manifest_file"
+          echo "sf project deploy start -d force-app --target-org YOUR_ORG" >> "$manifest_file"
+          echo "\`\`\`" >> "$manifest_file"
+          echo "" >> "$manifest_file"
+          echo "### Option 2: Cherry-pick Specific Reverts" >> "$manifest_file"
+          echo "\`\`\`bash" >> "$manifest_file"
+          echo "# Cherry-pick individual revert commits" >> "$manifest_file"
+          echo "git cherry-pick $revert_commits" >> "$manifest_file"
+          echo "\`\`\`" >> "$manifest_file"
+          echo "" >> "$manifest_file"
+          echo "### Option 3: Create Emergency Hotfix" >> "$manifest_file"
+          echo "\`\`\`bash" >> "$manifest_file"
+          echo "# Create hotfix branch from this revert package" >> "$manifest_file"
+          echo "git checkout -b hotfix-emergency-rollback $branch_name" >> "$manifest_file"
+          echo "# Make any additional changes" >> "$manifest_file"
+          echo "# Deploy to production" >> "$manifest_file"
+          echo "\`\`\`" >> "$manifest_file"
+          echo "" >> "$manifest_file"
+          echo "## 🔗 References" >> "$manifest_file"
+          echo "- **Workflow Run**: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> "$manifest_file"
+          echo "- **Revert Branch**: https://github.com/${{ github.repository }}/tree/$branch_name" >> "$manifest_file"
+          
+          # Add manifest to git
+          git add "$manifest_file"
+          git commit -m "📦 Add revert package manifest for commits $commit_range"
+          
+          echo "manifest_file=$manifest_file" >> $GITHUB_OUTPUT
+          
+      - name: Push revert package
+        run: |
+          branch_name="${{ steps.create-branch.outputs.branch_name }}"
+          
+          # Push all revert commits and manifest
+          git push origin "$branch_name"
+          
+          echo "✅ Revert package pushed to branch: $branch_name"
+          
+      - name: Create deployment package
+        id: create-package
+        run: |
+          branch_name="${{ steps.create-branch.outputs.branch_name }}"
+          
+          # Generate descriptive timestamp for package
+          revert_timestamp=$(date +%Y%m%d_%H%M%S)
+          revert_date_readable=$(date '+%Y-%m-%d_%H-%M-%S')
+          
+          # Create ZIP package with detailed naming
+          zip_name="revert-package-${{ steps.commit-info.outputs.latest_commit }}-reverted-on-${revert_date_readable}.zip"
+          
+          # Package the force-app directory from revert branch
+          git archive --format=zip --output="$zip_name" HEAD:force-app
+          
+          # Create a README file inside the package with revert info
+          echo "# Revert Package - Created on $(date)" > REVERT_INFO.txt
+          echo "This package contains reverted changes from commits in range: ${{ steps.commit-info.outputs.commit_range }}" >> REVERT_INFO.txt
+          echo "Revert performed on: $(date '+%Y-%m-%d at %H:%M:%S %Z')" >> REVERT_INFO.txt
+          echo "GitHub Workflow Run: ${{ github.run_id }}" >> REVERT_INFO.txt
+          echo "Created by: ${{ github.actor }}" >> REVERT_INFO.txt
+          
+          # Add the info file to the zip
+          zip -u "$zip_name" REVERT_INFO.txt
+          
+          # Display package info
+          echo "📦 Created deployment package: $zip_name"
+          ls -lh "$zip_name"
+          
+          echo "zip_name=$zip_name" >> $GITHUB_OUTPUT
+          echo "revert_timestamp=$revert_timestamp" >> $GITHUB_OUTPUT
+          
+      - name: Upload revert package as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: revert-package-${{ steps.commit-info.outputs.latest_commit }}-reverted-${{ steps.create-package.outputs.revert_timestamp }}
+          path: |
+            ${{ steps.create-package.outputs.zip_name }}
+            revert-packages/
+            REVERT_INFO.txt
+          retention-days: 90
+          if-no-files-found: warn
+          
+      - name: Upload manifest separately
+        uses: actions/upload-artifact@v4
+        with:
+          name: revert-manifest-${{ steps.commit-info.outputs.latest_commit }}-reverted-${{ steps.create-package.outputs.revert_timestamp }}
+          path: revert-packages/*.md
+          retention-days: 90
+          if-no-files-found: warn
+          
+      - name: Create summary
+        run: |
+          branch_name="${{ steps.create-branch.outputs.branch_name }}"
+          revert_commits="${{ steps.generate-reverts.outputs.revert_commits }}"
+          failed_reverts="${{ steps.generate-reverts.outputs.failed_reverts }}"
+          commit_count="${{ steps.commit-info.outputs.commit_count }}"
+          
+          echo "## 🎯 Revert Package Summary"
+          echo ""
+          echo "✅ **Revert package created successfully!**"
+          echo ""
+          echo "📊 **Statistics:**"
+          echo "- Original commits processed: $commit_count"
+          echo "- Revert commits created: $(echo $revert_commits | wc -w | tr -d ' ')"
+          if [ -n "$failed_reverts" ]; then
+            echo "- Failed reverts (conflicts): $(echo $failed_reverts | wc -w | tr -d ' ')"
+          fi
+          echo ""
+          echo "🌟 **Revert Branch**: \`$branch_name\`"
+          echo ""
+          echo "� **Artifacts Created**:"
+          echo "- Revert Package ZIP (ready for Salesforce deployment)"
+          echo "- Revert Manifest (detailed instructions and references)"
+          echo ""
+          echo "💾 **Download from**: GitHub Actions → Artifacts section"
+          echo "�🚀 **Ready to deploy**: Use this branch to rollback changes if needed"
+          echo ""
+          if [ -n "$failed_reverts" ]; then
+            echo "⚠️  **Note**: Some commits couldn't be auto-reverted due to conflicts."
+            echo "Check the manifest file for manual intervention steps."
+          fi

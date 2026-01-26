@@ -1,0 +1,16 @@
+{
+  "name": "jira-ticket-status-check",
+  "version": "1.0.0",
+  "description": "GitHub Action to check Jira ticket statuses",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["jira", "status", "github-action"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "axios": "^1.4.0"
+  }
+}

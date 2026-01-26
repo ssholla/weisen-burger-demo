@@ -1,0 +1,93 @@
+name: Data Seeding Sync
+
+on:
+  pull_request:
+    branches: [dissabled]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "data-seeding/**"
+
+jobs:
+  data-seeding:
+    runs-on: ubuntu-latest
+    name: Data Import to CI
+    environment: ci
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Salesforce Environment
+        uses: ./.github/actions/setup-salesforce
+
+      - name: Authenticate to Salesforce
+        uses: ./.github/actions/authenticate-salesforce
+        with:
+          jwt-server-key: ${{ secrets.JWT_SERVER_KEY }}
+          deployment-user: ${{ secrets.DEPLOYMENT_USER }}
+          consumer-key: ${{ secrets.CONSUMER_KEY }}
+          instance-url: ${{ vars.INSTANCE_URL }}
+
+      - name: Import Data to CI
+        uses: ./.github/actions/sfdmu-import
+        with:
+          deployment_user: ${{ secrets.DEPLOYMENT_USER }}
+          data_folder: data-seeding
+
+  data-seeding-devss:
+    runs-on: ubuntu-latest
+    name: Data Import to UAT
+    environment: uat
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Salesforce Environment
+        uses: ./.github/actions/setup-salesforce
+
+      - name: Authenticate to Salesforce
+        uses: ./.github/actions/authenticate-salesforce
+        with:
+          jwt-server-key: ${{ secrets.JWT_SERVER_KEY }}
+          deployment-user: ${{ secrets.DEPLOYMENT_USER }}
+          consumer-key: ${{ secrets.CONSUMER_KEY }}
+          instance-url: ${{ vars.INSTANCE_URL }}
+
+      - name: Import Data to UAT
+        uses: ./.github/actions/sfdmu-import
+        with:
+          deployment_user: ${{ secrets.DEPLOYMENT_USER }}
+          data_folder: data-seeding
+
+  data-seeding-devdb:
+    runs-on: ubuntu-latest
+    name: Data Import to PROD
+    environment: prod
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Salesforce Environment
+        uses: ./.github/actions/setup-salesforce
+
+      - name: Authenticate to Salesforce
+        uses: ./.github/actions/authenticate-salesforce
+        with:
+          jwt-server-key: ${{ secrets.JWT_SERVER_KEY }}
+          deployment-user: ${{ secrets.DEPLOYMENT_USER }}
+          consumer-key: ${{ secrets.CONSUMER_KEY }}
+          instance-url: ${{ vars.INSTANCE_URL }}
+
+      - name: Import Data to PROD
+        uses: ./.github/actions/sfdmu-import
+        with:
+          deployment_user: ${{ secrets.DEPLOYMENT_USER }}
+          data_folder: data-seeding

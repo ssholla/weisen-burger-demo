@@ -1,0 +1,22 @@
+name: 'Jira Ticket Updater'
+description: 'Updates Jira ticket status for one or more issues'
+inputs:
+  jira_url:
+    description: 'Base URL for the Jira instance'
+    required: true
+  jira_username:
+    description: 'Jira username/email for authentication'
+    required: true
+  jira_api_token:
+    description: 'Jira API token'
+    required: true
+  issue_keys:
+    description: 'Comma-separated Jira issue keys (e.g. SCRUM-1,SCRUM-2)'
+    required: true
+  status_name:
+    description: 'Status to move the issue to (e.g. Done)'
+    required: true
+
+runs:
+  using: 'node20'
+  main: 'index.js'

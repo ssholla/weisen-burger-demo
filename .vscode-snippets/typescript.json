@@ -1,0 +1,37 @@
+{
+  "Playwright Script": {
+    "prefix": "playwrightScript",
+    "body": [
+      "import { test, expect } from '@playwright/test';",
+      "const { promisify } = require('util');",
+      "const exec = promisify(require('child_process').exec);",
+      "",
+      "let execEnv = { env: { ...process.env, FORCE_COLOR: \"0\" } };",
+      "let OrgName = process.env.ORG_NAME;",
+      "",
+      "test('${2:testName}', async ({ page }) => {",
+      "  console.log(test.info().title);",
+      "",
+      "  try {",
+      "    const result = await exec(`sf org display --json -o ` + OrgName, execEnv);",
+      "    const jsonStart = result.stdout.indexOf('{');",
+      "    const cleanJson = result.stdout.slice(jsonStart).trim();",
+      "    const orgInfo = JSON.parse(cleanJson);",
+      "",
+      "    const sid = orgInfo.result.accessToken;",
+      "    const instanceUrl = orgInfo.result.instanceUrl;",
+      "    const loginUrl = instanceUrl + `/secur/frontdoor.jsp?sid=${encodeURIComponent(sid)}&retURL=${encodeURIComponent('/lightning/page/home')}`;",
+      "",
+      "    await page.goto(loginUrl, { waitUntil: 'domcontentloaded' });",
+      "    console.log('✅ Logged into Salesforce Lightning');",
+      "  } catch (error) {",
+      "    console.error('❌ Error logging in:', error.message);",
+      "    return;",
+      "  }",
+      "",
+      "  // TODO: Delete this line and place the mouse on the start of the line. Then open Playwright and select pick locator so that Chromium opens.",
+      "});"
+    ],
+    "description": "Playwright script for logging into Salesforce Lightning with a placeholder for test record logic."
+  }
+}

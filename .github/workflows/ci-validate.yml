@@ -1,0 +1,24 @@
+name: Validate to CI Environment
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "force-app/**"
+
+jobs:
+  validate-to-ci:
+    uses: ./.github/workflows/action-validate.yml
+    with:
+      environment: ci
+      user-map-for-deployments: false
+      skip-rules: false
+    secrets: inherit
+
+    permissions:
+      actions: read
+      security-events: write
+      contents: read
+      issues: write
+      pull-requests: write

@@ -1,0 +1,17 @@
+#!/bin/bash
+# prepare-commit-msg hook
+# This hook prepends the branch name to commit messages
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+
+BRANCH_NAME=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+if [ -n "$BRANCH_NAME" ] && [ "$BRANCH_NAME" != "main" ] && [ "$BRANCH_NAME" != "master" ]; then
+    COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+    
+    if [[ "$COMMIT_MSG" != *"$BRANCH_NAME"* ]]; then
+        echo "$BRANCH_NAME $COMMIT_MSG" > "$COMMIT_MSG_FILE"
+    fi
+fi

@@ -1,0 +1,87 @@
+{
+  "rules": [
+    {
+      "name": "CustomFieldRequiresKSPrefix",
+      "type": "field-prefix",
+      "metadataTypes": ["CustomField"],
+      "filePattern": ".*\\.field-meta\\.xml$",
+      "prefix": "KS_",
+      "severity": "error",
+      "category": "Naming Convention",
+      "enabled": true,
+      "description": "Custom fields must start with KS_ prefix to follow organizational standards"
+    },
+    {
+      "name": "CustomFieldRequiresDescription",
+      "type": "field-description",
+      "metadataTypes": ["CustomField"],
+      "filePattern": ".*\\.field-meta\\.xml$",
+      "severity": "error",
+      "minLength": 10,
+      "category": "Documentation",
+      "enabled": true,
+      "description": "Custom fields must have a meaningful description of at least 10 characters"
+    },
+    {
+      "name": "CustomObjectNaming",
+      "type": "object-naming",
+      "metadataTypes": ["CustomObject"],
+      "filePattern": ".*\\.object-meta\\.xml$",
+      "prefix": "KS_",
+      "suffix": "__c",
+      "severity": "error",
+      "category": "Naming Convention",
+      "enabled": true,
+      "description": "Custom objects must follow KS_ObjectName__c naming pattern"
+    },
+    {
+      "name": "CustomObjectDescriptionQuality",
+      "type": "object-description",
+      "metadataTypes": ["CustomObject"],
+      "filePattern": ".*\\.object-meta\\.xml$",
+      "severity": "warning",
+      "minLength": 10,
+      "category": "Documentation",
+      "enabled": true,
+      "description": "Custom objects should have a detailed description of at least 10 characters for better documentation"
+    },
+    {
+      "name": "ApexClassNaming",
+      "type": "apex-naming",
+      "metadataTypes": ["ApexClass"],
+      "filePattern": ".*\\.cls-meta\\.xml$",
+      "prefix": "KS_",
+      "severity": "error",
+      "category": "Naming Convention",
+      "enabled": true,
+      "description": "Apex classes must start with KS_ prefix to follow organizational standards"
+    },
+    {
+      "name": "FlowNamingConvention",
+      "type": "flow-naming",
+      "metadataTypes": ["Flow"],
+      "filePattern": ".*\\.flow-meta\\.xml$",
+      "prefix": "KS_",
+      "severity": "error",
+      "category": "Naming Convention",
+      "enabled": true,
+      "description": "Flows must start with KS_ prefix to follow organizational standards"
+    }
+  ],
+  "outputFormat": "console",
+  "failOnError": true,
+  "verbose": false,
+  "excludePatterns": [
+    "**/test/**",
+    "**/tests/**",
+    "**/node_modules/**",
+    "**/trigger-framework/**"
+  ],
+  "includePatterns": [
+    "**/*.field-meta.xml",
+    "**/*.object-meta.xml",
+    "**/*.flow-meta.xml",
+    "**/*.customMetadata-meta.xml",
+    "**/*.cls-meta.xml"
+  ]
+}

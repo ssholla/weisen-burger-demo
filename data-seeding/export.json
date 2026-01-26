@@ -1,0 +1,18 @@
+{
+    "excludeIdsFromCSVFiles": true,
+    "keepObjectOrderWhileExecute": true,
+    "allOrNone": true,
+    "objects": [
+        {
+            "operation": "Upsert",
+            "externalId": "LastName",
+            "query": "SELECT FirstName, LastName, AccountId FROM Contact",
+            "master": false
+        },
+        {
+            "operation": "Upsert",
+            "externalId": "Name",
+            "query": "SELECT Name, Phone FROM Account"
+        }
+    ]
+}

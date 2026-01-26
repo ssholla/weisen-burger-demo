@@ -1,0 +1,22 @@
+name: Deploy to Production Environment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "force-app/**"
+
+jobs:
+  deploy-to-prod:
+    uses: ./.github/workflows/action-deploy.yml
+    with:
+      environment: prod
+      case-comment-creation: false
+      user-map-for-deployments: false
+    secrets: inherit
+    permissions:
+      actions: write
+      security-events: write
+      contents: write
+      issues: write
+      pull-requests: write

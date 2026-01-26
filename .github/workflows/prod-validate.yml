@@ -1,0 +1,24 @@
+name: Validate to Production Environment
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "force-app/**"
+
+jobs:
+  validate-to-prod:
+    uses: ./.github/workflows/action-validate.yml
+    with:
+      environment: prod
+      user-map-for-deployments: false
+      skip-rules: true
+    secrets: inherit
+
+    permissions:
+      actions: read
+      security-events: write
+      contents: read
+      issues: write
+      pull-requests: write

@@ -1,0 +1,184 @@
+name: 'Update OAuth Policy Usernames'
+description: 'Replaces usernames in extlClntAppOauthPolicies metadata based on environment mapping'
+inputs:
+  environment:
+    description: 'Target environment (ci, uat, prod)'
+    required: true
+  changed-sources-dir:
+    description: 'Directory containing changed sources with package.xml'
+    required: false
+    default: 'changed-sources'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check for OAuth Policy metadata changes
+      id: check-oauth
+      shell: bash
+      run: |
+        PACKAGE_XML="${{ inputs.changed-sources-dir }}/package/package.xml"
+        
+        if [ ! -f "$PACKAGE_XML" ]; then
+          echo "No package.xml found, skipping OAuth policy username update"
+          echo "has_oauth_policies=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        # Check if extlClntAppOauthPolicies is in the package
+        if grep -q "<name>ExtlClntAppOauthConfigurablePolicies</name>" "$PACKAGE_XML"; then
+          echo "Found ExtlClntAppOauthConfigurablePolicies in deployment package"
+          echo "has_oauth_policies=true" >> $GITHUB_OUTPUT
+        else
+          echo "No ExtlClntAppOauthConfigurablePolicies found in package"
+          echo "has_oauth_policies=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Update OAuth Policy Usernames
+      if: steps.check-oauth.outputs.has_oauth_policies == 'true'
+      shell: bash
+      run: |
+        set -e
+        
+        ENVIRONMENT="${{ inputs.environment }}"
+        CHANGED_SOURCES="${{ inputs.changed-sources-dir }}"
+        OAUTH_POLICIES_DIR="$CHANGED_SOURCES/force-app/main/default/extlClntAppOauthPolicies"
+        REPO_OAUTH_POLICIES_DIR="force-app/main/default/extlClntAppOauthPolicies"
+        MAPPING_DIR="extlCIntAppOauthPoliciesUserNames"
+        
+        echo "================================================"
+        echo "OAuth Policy Username Update"
+        echo "================================================"
+        echo "Environment: $ENVIRONMENT"
+        echo "Changed Sources: $CHANGED_SOURCES"
+        echo ""
+        
+        # Check if OAuth policies directory exists in changed sources
+        if [ ! -d "$OAUTH_POLICIES_DIR" ]; then
+          echo "⚠️  No OAuth policies directory found in changed sources"
+          echo "Expected: $OAUTH_POLICIES_DIR"
+          exit 0
+        fi
+        
+        echo "✓ Found OAuth policies directory"
+        echo ""
+        
+        # Process each OAuth policy file
+        UPDATED_COUNT=0
+        for policy_file in "$OAUTH_POLICIES_DIR"/*.ecaOauthPlcy-meta.xml; do
+          if [ ! -f "$policy_file" ]; then
+            continue
+          fi
+          
+          # Get the base filename without extension
+          policy_filename=$(basename "$policy_file" .ecaOauthPlcy-meta.xml)
+          echo "Processing: $policy_filename"
+          
+          # Extract the current username from the XML (exclude commented lines)
+          current_username=$(grep -v '<!--' "$policy_file" | grep -oP '(?<=<clientCredentialsFlowUser>)[^<]+' || echo "")
+          
+          if [ -z "$current_username" ]; then
+            echo "  ⚠️  No clientCredentialsFlowUser found, skipping"
+            continue
+          fi
+          
+          echo "  Current username: $current_username"
+          
+          # Check if mapping file exists for this policy (based on policy name, not username)
+          MAPPING_FILE="$MAPPING_DIR/${policy_filename}.json"
+          
+          if [ ! -f "$MAPPING_FILE" ]; then
+            echo "  ⚠️  No mapping file found: $MAPPING_FILE"
+            echo "  Keeping username unchanged"
+            continue
+          fi
+          
+          echo "  ✓ Found mapping file: ${policy_filename}.json"
+          
+          # Read the target username from the JSON mapping file
+          target_username=$(jq -r --arg env "$ENVIRONMENT" '.[$env] // empty' "$MAPPING_FILE")
+          
+          if [ -z "$target_username" ]; then
+            echo "  ⚠️  No mapping found for environment: $ENVIRONMENT"
+            echo "  Available environments in mapping:"
+            jq -r 'keys[]' "$MAPPING_FILE" | sed 's/^/    - /'
+            echo "  Keeping username unchanged"
+            continue
+          fi
+          
+          echo "  Target username: $target_username"
+          
+          # Escape special characters in usernames for sed (escape backslash first, then special regex chars)
+          current_username_escaped=$(printf '%s\n' "$current_username" | sed 's/[\/&]/\\&/g' | sed 's/[][\.*^$(){}|+?]/\\&/g')
+          target_username_escaped=$(printf '%s\n' "$target_username" | sed 's/[\/&]/\\&/g' | sed 's/[][\.*^$(){}|+?]/\\&/g')
+          
+          # Replace the username in the XML file using a unique delimiter
+          sed -i.bak "s#<clientCredentialsFlowUser>${current_username_escaped}</clientCredentialsFlowUser>#<clientCredentialsFlowUser>${target_username_escaped}</clientCredentialsFlowUser>#g" "$policy_file"
+          rm -f "$policy_file.bak"
+          
+          echo "  ✅ Updated username in changed-sources to: $target_username"
+          
+          # Also update the same file in the repository's force-app directory
+          repo_policy_file="$REPO_OAUTH_POLICIES_DIR/$(basename "$policy_file")"
+          if [ -f "$repo_policy_file" ]; then
+            sed -i.bak "s#<clientCredentialsFlowUser>${current_username_escaped}</clientCredentialsFlowUser>#<clientCredentialsFlowUser>${target_username_escaped}</clientCredentialsFlowUser>#g" "$repo_policy_file"
+            rm -f "$repo_policy_file.bak"
+            echo "  ✅ Updated username in repository force-app to: $target_username"
+          else
+            echo "  ⚠️  Repository file not found: $repo_policy_file"
+          fi
+          
+          echo ""
+          UPDATED_COUNT=$((UPDATED_COUNT + 1))
+        done
+        
+        echo "================================================"
+        echo "Summary: Updated $UPDATED_COUNT OAuth policy file(s) in both locations"
+        echo "================================================"
+        
+    - name: Display updated files
+      if: steps.check-oauth.outputs.has_oauth_policies == 'true'
+      shell: bash
+      run: |
+        OAUTH_POLICIES_DIR="${{ inputs.changed-sources-dir }}/force-app/main/default/extlClntAppOauthPolicies"
+        REPO_OAUTH_POLICIES_DIR="force-app/main/default/extlClntAppOauthPolicies"
+        
+        echo ""
+        echo "================================================"
+        echo "📄 Updated OAuth Policy Files - Complete Content"
+        echo "================================================"
+        
+        # Display changed-sources files
+        if [ -d "$OAUTH_POLICIES_DIR" ]; then
+          echo ""
+          echo "🔹 Files in changed-sources (delta package):"
+          echo "================================================"
+          for policy_file in "$OAUTH_POLICIES_DIR"/*.ecaOauthPlcy-meta.xml; do
+            if [ -f "$policy_file" ]; then
+              echo ""
+              echo "� File: $(basename "$policy_file")"
+              echo "📁 Full path: $policy_file"
+              echo "---"
+              cat "$policy_file"
+              echo ""
+              echo "================================================"
+            fi
+          done
+        fi
+        
+        # Display repository files
+        if [ -d "$REPO_OAUTH_POLICIES_DIR" ]; then
+          echo ""
+          echo "🔹 Files in repository force-app:"
+          echo "================================================"
+          for policy_file in "$REPO_OAUTH_POLICIES_DIR"/*.ecaOauthPlcy-meta.xml; do
+            if [ -f "$policy_file" ]; then
+              echo ""
+              echo "📝 File: $(basename "$policy_file")"
+              echo "📁 Full path: $policy_file"
+              echo "---"
+              cat "$policy_file"
+              echo ""
+              echo "================================================"
+            fi
+          done
+        fi

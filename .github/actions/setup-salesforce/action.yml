@@ -1,0 +1,60 @@
+name: Setup Salesforce Environment
+description: Sets up Node.js, Salesforce CLI, sfdx plugins, and sfdx-git-delta
+env:
+  SFDX_CLI_VERSION: '2.104.6'
+  NODE_VERSION: '20'
+  SFDX_GIT_DELTA : '6.13.1'
+
+runs:
+  using: composite
+  steps:
+    - name: 'Setup Node.js'
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: 'Cache NPM and Salesforce CLI Dependencies'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.npm
+          ~/.sf
+          ~/.local/share/sf
+          ~/.local/share/sfdx
+        key: ${{ runner.os }}-sf-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
+        restore-keys: |
+          ${{ runner.os }}-sf-deps-
+          ${{ runner.os }}-
+
+    - name: 'Install Salesforce CLI (Only if Missing)'
+      run: |
+        if ! command -v sf &> /dev/null; then
+          npm install -g @salesforce/cli@${{ env.SFDX_CLI_VERSION }}
+        fi
+      shell: bash
+
+    - name: 'Add Plugin to Unsigned Allowlist'
+      run: |
+        mkdir -p ~/.config/sf
+        echo '["sfdx-git-delta", "code-analyzer"]' > ~/.config/sf/unsignedPluginAllowList.json
+      shell: bash
+
+    - name: 'Install sfdx-git-delta Plugin (Only if Missing)'
+      run: |
+        if ! sf plugins --core | grep -q sfdx-git-delta; then
+          sf plugins install sfdx-git-delta@${{ env.SFDX_GIT_DELTA }}
+        fi
+      shell: bash
+
+    - name: 'Install SF Code Analyzer Plugin (Only if Missing)'
+      run: |
+        if ! sf plugins | grep -q code-analyzer; then
+          sf plugins install @salesforce/code-analyzer@5
+        fi
+      shell: bash
+
+    - name: 'Check Salesforce CLI Version'
+      run: |
+        sf --version
+        sf plugins
+      shell: bash

@@ -1,0 +1,114 @@
+name: 'Custom Metadata Scanner'
+description: 'Custom Salesforce metadata validation tool for enforcing naming conventions and best practices'
+
+inputs:
+  target-directory:
+    description: 'Directory path containing Salesforce metadata files to validate'
+    required: true
+    default: 'force-app'
+  
+  config-file:
+    description: 'Path to validation configuration JSON file'
+    required: false
+    default: 'custom-metadata-validation-config.json'
+  
+  output-format:
+    description: 'Output format for results (console, json, sarif)'
+    required: false
+    default: 'sarif'
+  
+  output-file:
+    description: 'Output file name for results'
+    required: false
+    default: 'metadata-validation-results.sarif'
+  
+  fail-on-error:
+    description: 'Whether to fail the action when violations are found'
+    required: false
+    default: 'true'
+  
+  verbose:
+    description: 'Enable verbose logging'
+    required: false
+    default: 'false'
+
+outputs:
+  violations-count:
+    description: 'Total number of violations found'
+    value: ${{ steps.run-validation.outputs.violations-count }}
+  
+  error-count:
+    description: 'Number of error-level violations'
+    value: ${{ steps.run-validation.outputs.error-count }}
+  
+  warning-count:
+    description: 'Number of warning-level violations'
+    value: ${{ steps.run-validation.outputs.warning-count }}
+  
+  results-file:
+    description: 'Path to the generated results file'
+    value: ${{ steps.run-validation.outputs.results-file }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dependencies
+      run: |
+        cd ${{ github.action_path }}
+        npm install
+      shell: bash
+    
+    - name: Run metadata validation
+      id: run-validation
+      run: |
+        cd ${{ github.action_path }}
+        
+        TARGET_DIR="${{ inputs.target-directory }}"
+        OUTPUT_FILE="${{ inputs.output-file }}"
+        CONFIG_FILE="${{ inputs.config-file }}"
+        
+        if [[ ! "$TARGET_DIR" = /* ]]; then
+          TARGET_DIR="$GITHUB_WORKSPACE/$TARGET_DIR"
+        fi
+        
+        if [[ ! "$OUTPUT_FILE" = /* ]]; then
+          OUTPUT_FILE="$GITHUB_WORKSPACE/$OUTPUT_FILE"
+        fi
+        
+        if [[ ! "$CONFIG_FILE" = /* ]]; then
+          if [[ -f "$GITHUB_WORKSPACE/$CONFIG_FILE" ]]; then
+            CONFIG_FILE="$GITHUB_WORKSPACE/$CONFIG_FILE"
+          else
+            CONFIG_FILE="${{ github.action_path }}/$CONFIG_FILE"
+          fi
+        fi
+        
+        export INPUT_TARGET_DIRECTORY="$TARGET_DIR"
+        export INPUT_OUTPUT_FILE="$OUTPUT_FILE"
+        export INPUT_CONFIG_FILE="$CONFIG_FILE"
+        
+        node index.js
+        
+        if [ -f "$OUTPUT_FILE" ]; then
+          VIOLATIONS_COUNT=$(jq '[.runs[].results[]] | length' "$OUTPUT_FILE" 2>/dev/null || echo "0")
+          ERROR_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' "$OUTPUT_FILE" 2>/dev/null || echo "0")
+          WARNING_COUNT=$(jq '[.runs[].results[] | select(.level == "warning")] | length' "$OUTPUT_FILE" 2>/dev/null || echo "0")
+          
+          echo "violations-count=$VIOLATIONS_COUNT" >> $GITHUB_OUTPUT
+          echo "error-count=$ERROR_COUNT" >> $GITHUB_OUTPUT  
+          echo "warning-count=$WARNING_COUNT" >> $GITHUB_OUTPUT
+          echo "results-file=$OUTPUT_FILE" >> $GITHUB_OUTPUT
+        else
+          echo "violations-count=0" >> $GITHUB_OUTPUT
+          echo "error-count=0" >> $GITHUB_OUTPUT  
+          echo "warning-count=0" >> $GITHUB_OUTPUT
+          echo "results-file=" >> $GITHUB_OUTPUT
+        fi
+      shell: bash
+      env:
+        INPUT_TARGET_DIRECTORY: ${{ inputs.target-directory }}
+        INPUT_CONFIG_FILE: ${{ inputs.config-file }}
+        INPUT_OUTPUT_FORMAT: ${{ inputs.output-format }}
+        INPUT_OUTPUT_FILE: ${{ inputs.output-file }}
+        INPUT_FAIL_ON_ERROR: ${{ inputs.fail-on-error }}
+        INPUT_VERBOSE: ${{ inputs.verbose }}

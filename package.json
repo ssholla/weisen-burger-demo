@@ -1,0 +1,84 @@
+{
+  "name": "salesforce-app",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Salesforce App",
+  "license": "SEE LICENSE IN LICENSE",
+  "scripts": {
+    "lint": "eslint **/{aura,lwc}/**/*.js",
+    "test": "npm run test:unit",
+    "test:unit": "sfdx-lwc-jest",
+    "test:unit:watch": "sfdx-lwc-jest --watch",
+    "test:unit:debug": "sfdx-lwc-jest --debug",
+    "test:unit:coverage": "sfdx-lwc-jest --coverage",
+    "prettier": "prettier --write .",
+    "prettier:check": "prettier --check .",
+    "prettier:force-app": "prettier --write \"force-app/**/*\"",
+    "prettier:force-app:check": "prettier --check \"force-app/**/*\"",
+    "prettier:apex": "echo '🚀 Formatting custom Apex files...' && prettier --write \"force-app/main/**/*.{cls,trigger}\"",
+    "prettier:apex:check": "echo '🔍 Checking custom Apex formatting...' && prettier --check \"force-app/main/**/*.{cls,trigger}\"",
+    "prettier:apex:setup": "echo '📋 Apex formatting setup guide:' && echo '1. ✅ prettier-plugin-apex is installed' && echo '2. ✅ .prettierrc is configured' && echo '3. 📝 Apex files temporarily ignored for safety' && echo '4. 🔧 To enable: Remove Apex entries from .prettierignore' && echo '5. 🧪 Test with: npm run prettier:apex:check'",
+    "check:java": "java -version 2>/dev/null && echo '✅ Java is installed and ready for Apex formatting' || echo '❌ Java not found. Install from: https://adoptium.net/'",
+    "delta:generate": "sfdx sgd:source:delta --to HEAD --from HEAD~1 --output ./delta",
+    "delta:deploy": "sfdx force:source:deploy --sourcepath ./delta/force-app --testlevel RunLocalTests",
+    "delta:deploy:check": "sfdx force:source:deploy --sourcepath ./delta/force-app --testlevel RunLocalTests --checkonly",
+    "install:brew": "/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" && echo 'eval \"$(/opt/homebrew/bin/brew shellenv)\"' >> ~/.zprofile",
+    "install:gh": "eval \"$(/opt/homebrew/bin/brew shellenv)\" && /opt/homebrew/bin/brew install gh",
+    "install:sf": "npm install -g @salesforce/cli",
+    "install:tools": "npm run install:gh && npm run install:sf",
+    "install:local-dev": "sf plugins install @salesforce/plugin-lightning-dev@alpha",
+    "setup:git-hooks": "bash scripts/bash/setup-git-hooks.sh",
+    "setup:vscode-snippets": "bash scripts/bash/link-vscode-snippets.sh",
+    "setup:ssl-certificates": "bash scripts/bash/generate-ssl-certificates-auto.sh",
+    "setup:github-environments": "bash scripts/bash/setup-github-environments.sh",
+    "setup:apex-formatting": "npm run check:java && echo 'Apex formatting ready! Use: npm run prettier:apex'",
+    "setup:dev-env": "npm run setup:git-hooks && npm run setup:vscode-snippets && npm run setup:apex-formatting",
+    "setup:full-env": "npm run install:gh && npm run setup:dev-env && npm run setup:ssl-certificates && npm run setup:github-environments",
+    "postinstall": "npm run setup:dev-env",
+    "precommit": "lint-staged",
+    "prepare": "husky",
+    "delete:flow": "bash scripts/bash/delete-flow.sh",
+    "extract:data-dictionary": "bash scripts/bash/data-dictionary-extraction.sh",
+    "add:remote:template": "bash scripts/bash/add-remote-template.sh",
+    "local-dev:app": "sf lightning dev app"
+  },
+  "devDependencies": {
+    "@lwc/eslint-plugin-lwc": "^2.0.0",
+    "@playwright/test": "^1.52.0",
+    "@prettier/plugin-xml": "^3.2.2",
+    "@salesforce/eslint-config-lwc": "^3.7.2",
+    "@salesforce/eslint-plugin-aura": "^2.0.0",
+    "@salesforce/eslint-plugin-lightning": "^1.0.0",
+    "@salesforce/sfdx-lwc-jest": "^5.1.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-jest": "^28.8.1",
+    "husky": "^9.1.5",
+    "lint-staged": "^15.1.0",
+    "prettier": "^3.1.0",
+    "prettier-plugin-apex": "^2.0.1",
+    "sfdx-git-delta": "^6.13.0"
+  },
+  "lint-staged": {
+    "*.{js,ts,json,md,yaml,yml,css,html,htm,xml,svg}": [
+      "prettier --write"
+    ],
+    "*.{cls,trigger}": [
+      "prettier --write"
+    ],
+    "*.{cmp,app,evt,intf,auradoc,design}": [
+      "prettier --write"
+    ],
+    "**/{aura,lwc}/**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "**/{aura,lwc}/**/*.{html,css}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.13.0",
+    "@playwright/mcp": "^0.0.29"
+  }
+}

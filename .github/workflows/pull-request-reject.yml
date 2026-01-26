@@ -1,0 +1,22 @@
+name: PR Rejection
+
+on:
+  pull_request:
+    branches: [ ci ]
+    types: [closed]
+    paths:
+      - 'force-app/**'
+
+jobs:
+  
+  handle-rejection:
+    if: github.event.pull_request.merged == false
+    uses: ./.github/workflows/action-reject.yml
+    secrets: inherit
+
+    permissions:
+      actions: read 
+      security-events: write 
+      contents: read
+      issues: write
+      pull-requests: write

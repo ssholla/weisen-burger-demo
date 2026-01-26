@@ -1,0 +1,79 @@
+name: Daily Test Run
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  uat-test-run:
+    runs-on: ubuntu-latest
+    name: Run All Tests on UAT
+    environment: uat
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Salesforce Environment
+        uses: ./.github/actions/setup-salesforce
+
+      - name: Authenticate to UAT Salesforce Org
+        uses: ./.github/actions/authenticate-salesforce
+        with:
+          jwt-server-key: ${{ secrets.JWT_SERVER_KEY }}
+          deployment-user: ${{ secrets.DEPLOYMENT_USER }}
+          consumer-key: ${{ secrets.CONSUMER_KEY }}
+          instance-url: ${{ vars.INSTANCE_URL }}
+          set-dev-hub: true
+
+      - name: Run Tests on UAT with RunLocalTests
+        run: |
+          mkdir -p uat-test-results
+          sf apex run test --test-level RunLocalTests --target-org ${{ secrets.DEPLOYMENT_USER }} --synchronous --output-dir uat-test-results
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uat-test-results
+          path: uat-test-results/
+
+  prod-test-run:
+    runs-on: ubuntu-latest
+    name: Run All Tests on PROD
+    environment: prod
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Salesforce Environment
+        uses: ./.github/actions/setup-salesforce
+
+      - name: Authenticate to PROD Salesforce Org
+        uses: ./.github/actions/authenticate-salesforce
+        with:
+          jwt-server-key: ${{ secrets.JWT_SERVER_KEY }}
+          deployment-user: ${{ secrets.DEPLOYMENT_USER }}
+          consumer-key: ${{ secrets.CONSUMER_KEY }}
+          instance-url: ${{ vars.INSTANCE_URL }}
+          set-dev-hub: true
+
+      - name: Run Tests on PROD with RunLocalTests
+        run: |
+          mkdir -p prod-test-results
+          sf apex run test --test-level RunLocalTests --target-org ${{ secrets.DEPLOYMENT_USER }} --synchronous --output-dir prod-test-results
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-test-results
+          path: prod-test-results/

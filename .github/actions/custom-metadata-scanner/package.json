@@ -1,0 +1,16 @@
+{
+  "name": "custom-metadata-scanner",
+  "version": "1.0.0",
+  "description": "Custom Salesforce metadata validation tool for enforcing naming conventions and best practices",
+  "main": "index.js",
+  "dependencies": {
+    "fast-xml-parser": "^4.3.2",
+    "glob": "^10.3.10",
+    "yargs": "^17.7.2",
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
