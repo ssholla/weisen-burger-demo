@@ -291,12 +291,8 @@
                                     </div>
                                 </div>
 
-                                <!-- Action Buttons -->
-                                <div class="detail-actions">
-                                     <button class="custom-download-button" onclick={handleDownloadExpose}>Download Exposé</button>
-                                    <button class="custom-contact-button" onclick={handleContactFromDetail}>Contact Us</button>
-
-                                </div>
+                                <!-- Action Buttons (moved to footer) -->
+                                <!-- ...existing code... -->
                             </div>
 
                             <!-- Right Column: Image Carousel -->
@@ -347,6 +343,13 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Modal Footer -->
+                    <footer class="detail-modal-footer">
+                        <button class="custom-download-button" onclick={handleDownloadExpose}>Download Exposé</button>
+                        <button class="custom-contact-button" onclick={handleContactFromDetail}>Contact Us</button>
+                    </footer>
+
                 </div>
             </section>
             <div class="slds-backdrop slds-backdrop_open"></div>
