@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Total_ApartmentUnits__c</fullName>
+    <description>Custom rollup field to count the total number of units type apartment</description>
+    <label>Total Apartment Units</label>
+    <summaryFilterItems>
+        <field>KS_Unit__c.KS_Type__c</field>
+        <operation>equals</operation>
+        <value>Apartment</value>
+    </summaryFilterItems>
+    <summaryForeignKey>KS_Unit__c.KS_Project__c</summaryForeignKey>
+    <summaryOperation>count</summaryOperation>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Summary</type>
+</CustomField>
