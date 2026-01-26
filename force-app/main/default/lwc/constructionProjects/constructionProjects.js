@@ -9,6 +9,9 @@ export default class ConstructionProjects extends LightningElement {
     selectedLocation = '';
     selectedRegion = '';
     selectedPropertyType = '';
+    selectedSort = ''; // new sort selection
+    isSorting = false;
+    _sortTimer;
 
     // Modal state
     showDetailModal = false;
@@ -84,6 +87,20 @@ export default class ConstructionProjects extends LightningElement {
         ];
     }
 
+    // Sort options
+    get sortOptions() {
+        return [
+            { label: 'Default', value: '' },
+            { label: 'Best Selling', value: 'most_sold' },
+            { label: 'Alphabetical, A-Z', value: 'alpha_asc' },
+            { label: 'Alphabetical, Z-A', value: 'alpha_desc' },
+            { label: 'Price, low to high', value: 'price_asc' },
+            { label: 'Price, high to low', value: 'price_desc' },
+            { label: 'Date, old to new', value: 'date_old_new' },
+            { label: 'Date, new to old', value: 'date_new_old' }
+        ];
+    }
+
     // Filtered projects
     get filteredProjects() {
         let filtered = this.allProjects.filter(project => {
@@ -132,6 +149,38 @@ export default class ConstructionProjects extends LightningElement {
 
             return true;
         });
+
+        // Apply sorting if requested
+        if (this.selectedSort) {
+            const sortKey = this.selectedSort;
+            filtered = filtered.slice(); // clone array before sorting
+            switch (sortKey) {
+                case 'most_sold':
+                    // If there's a salesCount property, sort descending; otherwise, keep order
+                    filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
+                    break;
+                case 'alpha_asc':
+                    filtered.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                case 'alpha_desc':
+                    filtered.sort((a, b) => b.title.localeCompare(a.title));
+                    break;
+                case 'price_asc':
+                    filtered.sort((a, b) => a.price - b.price);
+                    break;
+                case 'price_desc':
+                    filtered.sort((a, b) => b.price - a.price);
+                    break;
+                case 'date_old_new':
+                    filtered.sort((a, b) => new Date(a.listingDate || a.createdDate || 0) - new Date(b.listingDate || b.createdDate || 0));
+                    break;
+                case 'date_new_old':
+                    filtered.sort((a, b) => new Date(b.listingDate || b.createdDate || 0) - new Date(a.listingDate || a.createdDate || 0));
+                    break;
+                default:
+                    break;
+            }
+        }
 
         // Add computed properties for display
         return filtered.map(project => ({
@@ -188,6 +237,23 @@ export default class ConstructionProjects extends LightningElement {
 
     handlePropertyTypeChange(event) {
         this.selectedPropertyType = event.detail.value;
+    }
+
+    handleSortChange(event) {
+        this.selectedSort = event.detail.value;
+        // trigger sorting animation
+        this.isSorting = true;
+        if (this._sortTimer) {
+            clearTimeout(this._sortTimer);
+        }
+        this._sortTimer = setTimeout(() => {
+            this.isSorting = false;
+            this._sortTimer = null;
+        }, 450);
+    }
+
+    get projectsGridClass() {
+        return `projects-grid ${this.isSorting ? 'is-sorting' : ''}`;
     }
 
     handleClearFilters() {
