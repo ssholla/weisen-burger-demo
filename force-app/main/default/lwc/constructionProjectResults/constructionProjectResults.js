@@ -137,10 +137,10 @@ export default class ConstructionProjectResults extends LightningElement {
                     filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
                     break;
                 case 'alpha_asc':
-                    filtered.sort((a, b) => a.title.localeCompare(b.title));
+                    filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
                     break;
                 case 'alpha_desc':
-                    filtered.sort((a, b) => b.title.localeCompare(a.title));
+                    filtered.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
                     break;
                 case 'price_asc':
                     filtered.sort((a, b) => a.price - b.price);
