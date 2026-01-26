@@ -32,7 +32,7 @@ public with sharing class ConstructionProjectsController {
         ]) {
             ProjectWrapper p = new ProjectWrapper();
             p.id = unit.Id;
-            p.code = String.isNotBlank(unit.KS_Code__c) ? unit.KS_Code__c : getLastCharsFromId(unit.Id, 4);
+            p.code = (String.isNotBlank(unit.KS_Code__c) ? unit.KS_Code__c : getLastCharsFromId(unit.Id, 4)).toUpperCase();
             p.title = unit.KS_Title__c;
             p.location = unit.KS_Project__r.Name;
             p.region = unit.KS_Project__r.KS_Region__c;
