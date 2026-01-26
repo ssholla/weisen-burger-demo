@@ -10,8 +10,6 @@ export default class ConstructionProjects extends LightningElement {
     selectedRegion = '';
     selectedPropertyType = '';
     selectedSort = ''; // new sort selection
-    isSorting = false;
-    _sortTimer;
 
     // Modal state
     showDetailModal = false;
@@ -241,19 +239,6 @@ export default class ConstructionProjects extends LightningElement {
 
     handleSortChange(event) {
         this.selectedSort = event.detail.value;
-        // trigger sorting animation
-        this.isSorting = true;
-        if (this._sortTimer) {
-            clearTimeout(this._sortTimer);
-        }
-        this._sortTimer = setTimeout(() => {
-            this.isSorting = false;
-            this._sortTimer = null;
-        }, 450);
-    }
-
-    get projectsGridClass() {
-        return `projects-grid ${this.isSorting ? 'is-sorting' : ''}`;
     }
 
     handleClearFilters() {
