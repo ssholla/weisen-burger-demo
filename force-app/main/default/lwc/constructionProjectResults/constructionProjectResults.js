@@ -12,6 +12,7 @@ export default class ConstructionProjectResults extends LightningElement {
     selectedRegion = '';
     selectedPropertyType = '';
     selectedSort = '';
+
     // Modal state
     showDetailModal = false;
     @track selectedProject = null;
@@ -46,8 +47,24 @@ export default class ConstructionProjectResults extends LightningElement {
             this.selectedLocation = message.filters.location;
             this.selectedRegion = message.filters.region;
             this.selectedPropertyType = message.filters.propertyType;
-            this.selectedSort = message.filters.sort;
         }
+    }
+
+    get sortOptions() {
+        return [
+            { label: 'Default', value: '' },
+            { label: 'Best Selling', value: 'most_sold' },
+            { label: 'Alphabetical, A-Z', value: 'alpha_asc' },
+            { label: 'Alphabetical, Z-A', value: 'alpha_desc' },
+            { label: 'Price, low to high', value: 'price_asc' },
+            { label: 'Price, high to low', value: 'price_desc' },
+            { label: 'Date, old to new', value: 'date_old_new' },
+            { label: 'Date, new to old', value: 'date_new_old' }
+        ];
+    }
+
+    handleSortChange(event) {
+        this.selectedSort = event.detail.value;
     }
 
     @wire(getProjects)

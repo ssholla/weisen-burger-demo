@@ -9,7 +9,6 @@ export default class ConstructionProjectFilters extends LightningElement {
     selectedLocation = '';
     selectedRegion = '';
     selectedPropertyType = '';
-    selectedSort = '';
 
     @wire(MessageContext)
     messageContext;
@@ -67,19 +66,6 @@ export default class ConstructionProjectFilters extends LightningElement {
         ];
     }
 
-    get sortOptions() {
-        return [
-            { label: 'Default', value: '' },
-            { label: 'Best Selling', value: 'most_sold' },
-            { label: 'Alphabetical, A-Z', value: 'alpha_asc' },
-            { label: 'Alphabetical, Z-A', value: 'alpha_desc' },
-            { label: 'Price, low to high', value: 'price_asc' },
-            { label: 'Price, high to low', value: 'price_desc' },
-            { label: 'Date, old to new', value: 'date_old_new' },
-            { label: 'Date, new to old', value: 'date_new_old' }
-        ];
-    }
-
     handlePriceChange(event) {
         this.selectedPrice = event.detail.value;
         this.publishFilters();
@@ -110,11 +96,6 @@ export default class ConstructionProjectFilters extends LightningElement {
         this.publishFilters();
     }
 
-    handleSortChange(event) {
-        this.selectedSort = event.detail.value;
-        this.publishFilters();
-    }
-
     handleClearFilters() {
         this.selectedPrice = '';
         this.selectedRooms = '';
@@ -122,7 +103,6 @@ export default class ConstructionProjectFilters extends LightningElement {
         this.selectedLocation = '';
         this.selectedRegion = '';
         this.selectedPropertyType = '';
-        this.selectedSort = '';
         this.publishFilters();
     }
 
@@ -133,8 +113,7 @@ export default class ConstructionProjectFilters extends LightningElement {
             bathrooms: this.selectedBathrooms,
             location: this.selectedLocation,
             region: this.selectedRegion,
-            propertyType: this.selectedPropertyType,
-            sort: this.selectedSort
+            propertyType: this.selectedPropertyType
         };
         publish(this.messageContext, PROJECT_FILTERS, { filters });
     }
