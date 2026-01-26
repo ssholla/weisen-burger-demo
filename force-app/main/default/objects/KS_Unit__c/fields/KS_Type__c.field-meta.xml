@@ -26,6 +26,16 @@
                 <default>false</default>
                 <label>Commercial</label>
             </value>
+            <value>
+                <fullName>Studio</fullName>
+                <default>false</default>
+                <label>Studio</label>
+            </value>
+            <value>
+                <fullName>Penthouse</fullName>
+                <default>false</default>
+                <label>Penthouse</label>
+            </value>
         </valueSetDefinition>
     </valueSet>
 </CustomField>
