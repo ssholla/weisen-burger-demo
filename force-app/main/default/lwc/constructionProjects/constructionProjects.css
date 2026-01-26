@@ -455,35 +455,14 @@
 
 /* Detail Modal Styles */
 .detail-modal-container {
-    width: 90%; /* Set the width to 90% of the screen */
-    max-width: none; /* Remove the max-width constraint */
+    max-width: 1200px;
     min-height: 600px;
-    margin: 0 auto; /* Center the modal horizontally */
-    display: flex;
-    flex-direction: column;
-}
-
-.detail-modal-footer {
-    position: sticky;
-    bottom: 0;
-    background-color: #ffffff;
-    padding: 1rem;
-    display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
-    border-top: 1px solid #d8dde6;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 20;
-}
-
-.detail-modal-footer button {
-    margin-left: 1rem; /* Add spacing between buttons */
 }
 
 .detail-modal-body {
     padding: 0;
     overflow-y: auto;
     max-height: calc(100vh - 200px);
-    padding-bottom: 80px; /* reserve space so content doesn't hide behind sticky footer */
 }
 
 .detail-location {
@@ -587,7 +566,7 @@
 
 /* Detail Actions */
 .detail-actions {
-    display: none; /* moved to sticky footer */
+    display: flex;
     gap: 1rem;
     margin-top: auto;
     padding-top: 1.5rem;
