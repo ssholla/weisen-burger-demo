@@ -1,0 +1,105 @@
+<template>
+    <div class="construction-projects-results">
+        <div class="results-header slds-m-bottom_medium">
+            <div class="results-count">
+                {resultCount} {resultLabel}
+            </div>
+        </div>
+
+        <div class="projects-container">
+            <template if:true={hasProjects}>
+                <div class={projectsGridClass}>
+                    <template for:each={filteredProjects} for:item="project">
+                        <div key={project.id} class="project-card">
+                            <!-- Image Carousel -->
+                            <div class="carousel-container">
+                                <template if:true={project.hasMultipleImages}>
+                                    <lightning-button-icon
+                                        icon-name="utility:chevronleft"
+                                        alternative-text="Previous Image"
+                                        variant="bare"
+                                        class="carousel-nav nav-prev"
+                                        data-project-id={project.id}
+                                        onclick={handlePreviousImage}>
+                                    </lightning-button-icon>
+                                </template>
+
+                                <div class="image-wrapper">
+                                    <img 
+                                        src={project.currentImage} 
+                                        alt={project.title}
+                                        class="project-image"
+                                    />
+                                    <div class="image-badge">{project.code}</div>
+                                </div>
+
+                                <template if:true={project.hasMultipleImages}>
+                                    <lightning-button-icon
+                                        icon-name="utility:chevronright"
+                                        alternative-text="Next Image"
+                                        variant="bare"
+                                        class="carousel-nav nav-next"
+                                        data-project-id={project.id}
+                                        onclick={handleNextImage}>
+                                    </lightning-button-icon>
+                                </template>
+
+                                <!-- Image Indicators -->
+                                <template if:true={project.hasMultipleImages}>
+                                    <div class="carousel-indicators">
+                                        <template for:each={project.imageIndicators} for:item="indicator">
+                                            <span 
+                                                key={indicator.index} 
+                                                class={indicator.className}
+                                                data-project-id={project.id}
+                                                data-index={indicator.index}
+                                                onclick={handleIndicatorClick}>
+                                            </span>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Project Info -->
+                            <div class="project-info">
+                                <div class="project-location">
+                                    {project.location}, {project.region}
+                                </div>
+                                <h3 class="project-title">{project.title}</h3>
+                                
+                                <div class="project-details">
+                                    <div class="detail-item">
+                                        <lightning-icon 
+                                            icon-name="utility:layers" 
+                                            size="x-small"
+                                            class="detail-icon">
+                                        </lightning-icon>
+                                        <span>{project.rooms} Rooms</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <lightning-icon 
+                                            icon-name="utility:salesforce1" 
+                                            size="x-small"
+                                            class="detail-icon">
+                                        </lightning-icon>
+                                        <span>{project.area} m²</span>
+                                    </div>
+                                </div>
+
+                                <div class="price-section">
+                                    <div class="price">{project.formattedPrice}</div>
+                                    <div class="parking-info">Parking: {project.parkingPrice}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+            <template if:false={hasProjects}>
+                <div class="slds-p-around_medium slds-text-align_center slds-text-heading_medium">
+                    No projects match your criteria.
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

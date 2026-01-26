@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningMessageChannel xmlns="http://soap.sforce.com/2006/04/metadata">
+    <masterLabel>Project Filters</masterLabel>
+    <isExposed>true</isExposed>
+    <description>Message Channel for filtering Construction Projects</description>
+    <lightningMessageFields>
+        <fieldName>filters</fieldName>
+        <description>Filter object containing all filter criteria</description>
+    </lightningMessageFields>
+</LightningMessageChannel>

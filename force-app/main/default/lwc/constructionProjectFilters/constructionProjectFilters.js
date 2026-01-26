@@ -1,0 +1,141 @@
+import { LightningElement, wire } from 'lwc';
+import { publish, MessageContext } from 'lightning/messageService';
+import PROJECT_FILTERS from '@salesforce/messageChannel/ProjectFilters__c';
+
+export default class ConstructionProjectFilters extends LightningElement {
+    selectedPrice = '';
+    selectedRooms = '';
+    selectedBathrooms = '';
+    selectedLocation = '';
+    selectedRegion = '';
+    selectedPropertyType = '';
+    selectedSort = '';
+
+    @wire(MessageContext)
+    messageContext;
+
+    get priceOptions() {
+        return [
+            { label: 'All Prices', value: '' },
+            { label: 'Up to €300,000', value: '0-300000' },
+            { label: '€300,000 - €500,000', value: '300000-500000' },
+            { label: '€500,000 - €700,000', value: '500000-700000' },
+            { label: 'Above €700,000', value: '700000-999999999' }
+        ];
+    }
+
+    get roomOptions() {
+        return [
+            { label: 'All Rooms', value: '' },
+            { label: '1 Room', value: '1' },
+            { label: '2 Rooms', value: '2' },
+            { label: '3 Rooms', value: '3' },
+            { label: '4 Rooms', value: '4' },
+            { label: '5+ Rooms', value: '5' }
+        ];
+    }
+
+    get bathroomOptions() {
+        return [
+            { label: 'All Bathrooms', value: '' },
+            { label: '1 Bathroom', value: '1' },
+            { label: '2 Bathrooms', value: '2' },
+            { label: '3+ Bathrooms', value: '3' }
+        ];
+    }
+
+    get locationOptions() {
+        return [
+            { label: 'All Locations', value: '' },
+            { label: 'Winnenden', value: 'Winnenden' }
+        ];
+    }
+
+    get regionOptions() {
+        return [
+            { label: 'All Regions', value: '' },
+            { label: 'Greater Stuttgart', value: 'Greater Stuttgart' }
+        ];
+    }
+
+    get propertyTypeOptions() {
+        return [
+            { label: 'All Property Types', value: '' },
+            { label: 'Apartment', value: 'Apartment' },
+            { label: 'Penthouse', value: 'Penthouse' },
+            { label: 'Studio', value: 'Studio' }
+        ];
+    }
+
+    get sortOptions() {
+        return [
+            { label: 'Default', value: '' },
+            { label: 'Best Selling', value: 'most_sold' },
+            { label: 'Alphabetical, A-Z', value: 'alpha_asc' },
+            { label: 'Alphabetical, Z-A', value: 'alpha_desc' },
+            { label: 'Price, low to high', value: 'price_asc' },
+            { label: 'Price, high to low', value: 'price_desc' },
+            { label: 'Date, old to new', value: 'date_old_new' },
+            { label: 'Date, new to old', value: 'date_new_old' }
+        ];
+    }
+
+    handlePriceChange(event) {
+        this.selectedPrice = event.detail.value;
+        this.publishFilters();
+    }
+
+    handleRoomsChange(event) {
+        this.selectedRooms = event.detail.value;
+        this.publishFilters();
+    }
+
+    handleBathroomsChange(event) {
+        this.selectedBathrooms = event.detail.value;
+        this.publishFilters();
+    }
+
+    handleLocationChange(event) {
+        this.selectedLocation = event.detail.value;
+        this.publishFilters();
+    }
+
+    handleRegionChange(event) {
+        this.selectedRegion = event.detail.value;
+        this.publishFilters();
+    }
+
+    handlePropertyTypeChange(event) {
+        this.selectedPropertyType = event.detail.value;
+        this.publishFilters();
+    }
+
+    handleSortChange(event) {
+        this.selectedSort = event.detail.value;
+        this.publishFilters();
+    }
+
+    handleClearFilters() {
+        this.selectedPrice = '';
+        this.selectedRooms = '';
+        this.selectedBathrooms = '';
+        this.selectedLocation = '';
+        this.selectedRegion = '';
+        this.selectedPropertyType = '';
+        this.selectedSort = '';
+        this.publishFilters();
+    }
+
+    publishFilters() {
+        const filters = {
+            price: this.selectedPrice,
+            rooms: this.selectedRooms,
+            bathrooms: this.selectedBathrooms,
+            location: this.selectedLocation,
+            region: this.selectedRegion,
+            propertyType: this.selectedPropertyType,
+            sort: this.selectedSort
+        };
+        publish(this.messageContext, PROJECT_FILTERS, { filters });
+    }
+}
