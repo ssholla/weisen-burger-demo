@@ -92,11 +92,12 @@
 
             <!-- Filter Actions -->
             <div class="filter-actions">
-                <button
+                <lightning-button
+                    label="Clear Filters"
                     onclick={handleClearFilters}
+                    variant="neutral"
                     class="clear-button">
-                    Clear Filters
-                </button>
+                </lightning-button>
                 <div class="results-count">
                     {resultCount} {resultLabel}
                 </div>
@@ -200,12 +201,13 @@
 
                                 <div class="project-footer">
                                     <div class="project-price">{project.formattedPrice}</div>
-                                    <button
+                                    <lightning-button
+                                        label="View Details"
+                                        variant="brand"
                                         class="view-button"
                                         data-project-id={project.id}
                                         onclick={handleViewDetails}>
-                                        View Details
-                                    </button>
+                                    </lightning-button>
                                 </div>
                             </div>
                         </div>
@@ -231,11 +233,12 @@
         <div class="contact-section">
             <h2 class="contact-title">Schedule a Viewing</h2>
             <p class="contact-subtitle">We're happy to provide you with personal information</p>
-            <button
+            <lightning-button
+                label="Contact Us"
+                variant="brand"
                 class="contact-button"
                 onclick={handleContactClick}>
-                Contact Us
-            </button>
+            </lightning-button>
         </div>
 
         <!-- Project Detail Modal -->

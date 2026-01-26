@@ -48,28 +48,9 @@
 
 .filters-grid {
     display: grid;
-     /* Force 6 columns on large screens to keep in single line */
-    grid-template-columns: repeat(6, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
     margin-bottom: 1.5rem;
-}
-
-@media (max-width: 1200px) {
-    .filters-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
-    .filters-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 480px) {
-    .filters-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 .filter-item {
@@ -106,10 +87,7 @@
     color: #1a4d8f;
     font-weight: 600;
     border-radius: 6px;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    cursor: pointer;
-    font-size: 0.95rem; 
+    padding: 0.5rem 1.5rem;
 }
 
 .results-count {
@@ -125,27 +103,8 @@
 
 .projects-grid {
     display: grid;
-    /* 4 items per row as requested */
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-}
-
-@media (max-width: 1400px) {
-    .projects-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 1100px) {
-    .projects-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 650px) {
-    .projects-grid {
-        grid-template-columns: 1fr;
-    }
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
 }
 
 /* Project Card */
@@ -330,11 +289,10 @@
     color: #ffffff;
     font-weight: 600;
     border-radius: 6px;
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1.5rem;
     border: none;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    font-size: 0.95rem;
 }
 
 .view-button:hover {
