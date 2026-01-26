@@ -1,5 +1,4 @@
-import { LightningElement, track, wire } from 'lwc';
-import getProjects from '@salesforce/apex/ConstructionProjectsController.getProjects';
+import { LightningElement, track } from 'lwc';
 
 export default class ConstructionProjects extends LightningElement {
     // Filter values
@@ -15,20 +14,284 @@ export default class ConstructionProjects extends LightningElement {
     @track selectedProject = null;
 
     // All projects data
-    @track allProjects = [];
-
-    @wire(getProjects)
-    wiredProjects({ error, data }) {
-        if (data) {
-            // Clone data to make it mutable and ensure UI state properties exist
-            this.allProjects = data.map(project => ({
-                ...project,
-                currentImageIndex: 0 // Ensure UI state is initialized
-            }));
-        } else if (error) {
-            console.error('Error loading projects', error);
+    @track allProjects = [
+        {
+            id: '1',
+            code: 'A3.25',
+            title: '2-Room Terrace Apartment with Garden in Winnenden',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 2,
+            bathrooms: 1,
+            area: 64.7,
+            floor: '0 of 3',
+            parkingCost: 26500,
+            propertyType: 'Apartment',
+            price: 342000,
+            features: ['Terrace', 'Garden', 'Balcony'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg25EG_4a1c71bd-2a4f-4f2a-ad2d-3459c33a3af1.png?v=1765981314&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17_d022a82a-1033-4916-8a63-90f11aa93ad2.png?v=1766071663&width=1200'
+            ],
+            currentImageIndex: 0
+        },
+        {
+            id: '2',
+            code: 'A3.27',
+            title: '2-Room Terrace Apartment with Garden in Winnenden',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 2,
+            bathrooms: 1,
+            area: 68,
+            floor: '0 of 3',
+            parkingCost: 26500,
+            propertyType: 'Apartment',
+            price: 343000,
+            features: ['Terrace', 'Garden', 'Elevator'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg27EG.png?v=1765981248&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17_d022a82a-1033-4916-8a63-90f11aa93ad2.png?v=1766071663&width=1200'
+            ],
+            currentImageIndex: 0
+        },
+        {
+            id: '3',
+            code: 'A2.15',
+            title: '3-Room Ground Floor Apartment in Winnenden with Private Garden',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 3,
+            bathrooms: 2,
+            area: 85,
+            floor: '0 of 3',
+            parkingCost: 28000,
+            propertyType: 'Apartment',
+            price: 451000,
+            features: ['Garden', 'Ground Floor', 'Terrace'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA2Whg15EG_2ead048c-1ee1-4f58-8550-89bac0d298c3.png?v=1765981365&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17_d022a82a-1033-4916-8a63-90f11aa93ad2.png?v=1766071663&width=1200'
+            ],
+            currentImageIndex: 0
+        },
+        {
+            id: '4',
+            code: 'A2.20',
+            title: '3-Room Apartment in Winnenden with 90 m² incl. Balcony',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 3,
+            bathrooms: 2,
+            area: 90,
+            floor: '2 of 3',
+            parkingCost: 26500,
+            propertyType: 'Apartment',
+            price: 479000,
+            features: ['Balcony', 'Elevator', 'Premium Finishes'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA2Whg201.OG.png?v=1765981345&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17_d022a82a-1033-4916-8a63-90f11aa93ad2.png?v=1766071663&width=1200'
+            ],
+            currentImageIndex: 0
+        },
+        {
+            id: '5',
+            code: 'A1.12',
+            title: '4-Room Apartment in Winnenden with 102 m² incl. Balcony',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 4,
+            bathrooms: 2,
+            area: 102,
+            floor: '1 of 3',
+            parkingCost: 28000,
+            propertyType: 'Apartment',
+            price: 559500,
+            features: ['Balcony', 'Elevator', 'Parking'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA1Whg12-2.OG_02a13b2a-812e-4ded-826c-90af827cdfdd.png?v=1765981432&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17_d022a82a-1033-4916-8a63-90f11aa93ad2.png?v=1766071663&width=1200'
+            ],
+            currentImageIndex: 0
+        },
+        {
+            id: '6',
+            code: 'A5.48',
+            title: 'Penthouse with Two Roof Terraces and Breathtaking Views in Winnenden',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 5,
+            bathrooms: 3,
+            area: 144,
+            floor: '3 of 3',
+            parkingCost: 30000,
+            propertyType: 'Penthouse',
+            price: 829000,
+            features: ['Roof Terrace', 'Panoramic View', 'Premium Finishes', 'Elevator'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA5Whg48Penthouse_5586d2ef-0582-4cf1-a4e9-453d9eef3d40.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/Bild_3.jpg?v=1766072826&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/Bild_1.jpg?v=1766072826&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/Bild_4.jpg?v=1766072826&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/Bild_2.jpg?v=1766072826&width=1200'
+            ],
+            currentImageIndex: 0
+        },
+        {
+            id: '7',
+            code: 'A3.34',
+            title: 'Exclusive Penthouse in Winnenden with 122 m² and Premium Finishes',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 4,
+            bathrooms: 2,
+            area: 122,
+            floor: '3 of 3',
+            parkingCost: 28000,
+            propertyType: 'Penthouse',
+            price: 708000,
+            features: ['Terrace', 'Premium Finishes', 'Elevator'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg34Penthouse_99d019ad-ddeb-4e4a-8b5a-a613aa05437f.png?v=1766071614&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17_d022a82a-1033-4916-8a63-90f11aa93ad2.png?v=1766071663&width=1200'
+            ],
+            currentImageIndex: 0
+        },
+        {
+            id: '8',
+            code: 'A1.08',
+            title: 'Spacious 4-Room Apartment with Balcony in Winnenden-Höfen',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 4,
+            bathrooms: 2,
+            area: 98,
+            floor: '0 of 3',
+            parkingCost: 26500,
+            propertyType: 'Apartment',
+            price: 549000,
+            features: ['Balcony', 'Elevator', 'Storage'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA1Whg8-1.OG.png?v=1765981388&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17_d022a82a-1033-4916-8a63-90f11aa93ad2.png?v=1766071663&width=1200'
+            ],
+            currentImageIndex: 0
+        },
+        {
+            id: '9',
+            code: 'A3.26',
+            title: 'Bright 1-Room Ground Floor Apartment in Winnenden with Private Garden',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 1,
+            bathrooms: 1,
+            area: 45,
+            floor: '0 of 3',
+            parkingCost: 25000,
+            propertyType: 'Studio',
+            price: 239000,
+            features: ['Garden', 'Ground Floor'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg26EG_b25cfb25-bbbf-4ca9-b460-462b2f0c7a5d.png?v=1765981270&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17_d022a82a-1033-4916-8a63-90f11aa93ad2.png?v=1766071663&width=1200'
+            ],
+            currentImageIndex: 0
+        },
+        {
+            id: '10',
+            code: 'A3.29',
+            title: 'Bright 1-Room Apartment in Winnenden with Balcony',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 1,
+            bathrooms: 1,
+            area: 47,
+            floor: '2 of 3',
+            parkingCost: 25000,
+            propertyType: 'Studio',
+            price: 239000,
+            features: ['Balcony', 'Elevator'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg291.OG.png?v=1765981217&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17_d022a82a-1033-4916-8a63-90f11aa93ad2.png?v=1766071663&width=1200'
+            ],
+            currentImageIndex: 0
+        },
+        {
+            id: '11',
+            code: 'A1.04',
+            title: 'Moderne 3-Zimmer-Terrassenwohnung mit 88 m² in Winnenden-Höfen',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 3,
+            bathrooms: 2,
+            area: 88,
+            floor: '0 of 3',
+            parkingCost: 26500,
+            propertyType: 'Apartment',
+            price: 471000,
+            features: ['Terrace', 'Ground Floor', 'Elevator'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA1Whg4EG_ba840005-e22e-4fd2-bf58-9dbe1d9de368.png?v=1765982405&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17_d022a82a-1033-4916-8a63-90f11aa93ad2.png?v=1766071663&width=1200'
+            ],
+            currentImageIndex: 0
+        },
+        {
+            id: '12',
+            code: 'A4.39',
+            title: 'Moderne 2-Zimmer-Wohnung in Winnenden mit Balkon',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 2,
+            bathrooms: 1,
+            area: 70,
+            floor: '1 of 3',
+            parkingCost: 26500,
+            propertyType: 'Apartment',
+            price: 348000,
+            features: ['Balcony', 'Elevator'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA4Whg391.OG.png?v=1765981141&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17.png?v=1765981141&width=1200'
+            ],
+            currentImageIndex: 0
         }
-    }
+    ];
 
     // Filter options
     get priceOptions() {
