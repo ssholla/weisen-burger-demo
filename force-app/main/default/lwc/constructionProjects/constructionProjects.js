@@ -244,6 +244,52 @@ export default class ConstructionProjects extends LightningElement {
                 'https://immobilien.weisenburger.de/cdn/shop/files/17_d022a82a-1033-4916-8a63-90f11aa93ad2.png?v=1766071663&width=1200'
             ],
             currentImageIndex: 0
+        },
+        {
+            id: '11',
+            code: 'A1.04',
+            title: 'Moderne 3-Zimmer-Terrassenwohnung mit 88 m² in Winnenden-Höfen',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 3,
+            bathrooms: 2,
+            area: 88,
+            floor: '0 of 3',
+            parkingCost: 26500,
+            propertyType: 'Apartment',
+            price: 471000,
+            features: ['Terrace', 'Ground Floor', 'Elevator'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA1Whg4EG_ba840005-e22e-4fd2-bf58-9dbe1d9de368.png?v=1765982405&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17_d022a82a-1033-4916-8a63-90f11aa93ad2.png?v=1766071663&width=1200'
+            ],
+            currentImageIndex: 0
+        },
+        {
+            id: '12',
+            code: 'A4.39',
+            title: 'Moderne 2-Zimmer-Wohnung in Winnenden mit Balkon',
+            location: 'Winnenden',
+            region: 'Greater Stuttgart',
+            rooms: 2,
+            bathrooms: 1,
+            area: 70,
+            floor: '1 of 3',
+            parkingCost: 26500,
+            propertyType: 'Apartment',
+            price: 348000,
+            features: ['Balcony', 'Elevator'],
+            images: [
+                'https://immobilien.weisenburger.de/cdn/shop/files/HausA4Whg391.OG.png?v=1765981141&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/15.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/18.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/16.png?v=1766071663&width=1200',
+                'https://immobilien.weisenburger.de/cdn/shop/files/17.png?v=1765981141&width=1200'
+            ],
+            currentImageIndex: 0
         }
     ];
 
