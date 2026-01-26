@@ -30,9 +30,9 @@ export default class ConstructionProjects extends LightningElement {
             price: 342000,
             features: ['Terrace', 'Garden', 'Balcony'],
             images: [
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg25EG_4a1c71bd-2a4f-4f2a-ad2d-3459c33a3af1.png?v=1765981314&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg25EG_4a1c71bd-2a4f-4f2a-ad2d-3459c33a3af1.png?v=1765981314&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg25EG_4a1c71bd-2a4f-4f2a-ad2d-3459c33a3af1.png?v=1765981314&width=1200'
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Apartment+View+1',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Floor+Plan',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Garden+View'
             ],
             currentImageIndex: 0
         },
@@ -51,9 +51,9 @@ export default class ConstructionProjects extends LightningElement {
             price: 343000,
             features: ['Terrace', 'Garden', 'Elevator'],
             images: [
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg27EG.png?v=1765981248&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg27EG.png?v=1765981248&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg27EG.png?v=1765981248&width=1200'
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Apartment+A3.27',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Living+Room',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Bedroom'
             ],
             currentImageIndex: 0
         },
@@ -72,9 +72,9 @@ export default class ConstructionProjects extends LightningElement {
             price: 451000,
             features: ['Garden', 'Ground Floor', 'Terrace'],
             images: [
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA2Whg15EG_2ead048c-1ee1-4f58-8550-89bac0d298c3.png?v=1765981365&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA2Whg15EG_2ead048c-1ee1-4f58-8550-89bac0d298c3.png?v=1765981365&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA2Whg15EG_2ead048c-1ee1-4f58-8550-89bac0d298c3.png?v=1765981365&width=1200'
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Ground+Floor+Apt',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Kitchen',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Garden'
             ],
             currentImageIndex: 0
         },
@@ -93,9 +93,8 @@ export default class ConstructionProjects extends LightningElement {
             price: 479000,
             features: ['Balcony', 'Elevator', 'Premium Finishes'],
             images: [
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA2Whg201.OG.png?v=1765981345&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA2Whg201.OG.png?v=1765981345&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA2Whg201.OG.png?v=1765981345&width=1200'
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=3-Room+Apartment',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Balcony+View'
             ],
             currentImageIndex: 0
         },
@@ -114,9 +113,9 @@ export default class ConstructionProjects extends LightningElement {
             price: 559500,
             features: ['Balcony', 'Elevator', 'Parking'],
             images: [
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA1Whg12-2.OG_02a13b2a-812e-4ded-826c-90af827cdfdd.png?v=1765981432&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA1Whg12-2.OG_02a13b2a-812e-4ded-826c-90af827cdfdd.png?v=1765981432&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA1Whg12-2.OG_02a13b2a-812e-4ded-826c-90af827cdfdd.png?v=1765981432&width=1200'
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=4-Room+Apartment',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Master+Bedroom',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Living+Area'
             ],
             currentImageIndex: 0
         },
@@ -135,9 +134,9 @@ export default class ConstructionProjects extends LightningElement {
             price: 829000,
             features: ['Roof Terrace', 'Panoramic View', 'Premium Finishes', 'Elevator'],
             images: [
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA5Whg48Penthouse_5586d2ef-0582-4cf1-a4e9-453d9eef3d40.png?v=1766071663&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA5Whg48Penthouse_5586d2ef-0582-4cf1-a4e9-453d9eef3d40.png?v=1766071663&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA5Whg48Penthouse_5586d2ef-0582-4cf1-a4e9-453d9eef3d40.png?v=1766071663&width=1200'
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Penthouse',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Roof+Terrace',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=City+View'
             ],
             currentImageIndex: 0
         },
@@ -156,9 +155,8 @@ export default class ConstructionProjects extends LightningElement {
             price: 708000,
             features: ['Terrace', 'Premium Finishes', 'Elevator'],
             images: [
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg34Penthouse_99d019ad-ddeb-4e4a-8b5a-a613aa05437f.png?v=1766071614&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg34Penthouse_99d019ad-ddeb-4e4a-8b5a-a613aa05437f.png?v=1766071614&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg34Penthouse_99d019ad-ddeb-4e4a-8b5a-a613aa05437f.png?v=1766071614&width=1200'
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Exclusive+Penthouse',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Interior'
             ],
             currentImageIndex: 0
         },
@@ -177,9 +175,9 @@ export default class ConstructionProjects extends LightningElement {
             price: 549000,
             features: ['Balcony', 'Elevator', 'Storage'],
             images: [
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA1Whg8-1.OG.png?v=1765981388&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA1Whg8-1.OG.png?v=1765981388&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA1Whg8-1.OG.png?v=1765981388&width=1200'
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Spacious+4-Room',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Floor+Plan',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Balcony'
             ],
             currentImageIndex: 0
         },
@@ -198,9 +196,8 @@ export default class ConstructionProjects extends LightningElement {
             price: 239000,
             features: ['Garden', 'Ground Floor'],
             images: [
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg26EG_b25cfb25-bbbf-4ca9-b460-462b2f0c7a5d.png?v=1765981270&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg26EG_b25cfb25-bbbf-4ca9-b460-462b2f0c7a5d.png?v=1765981270&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg26EG_b25cfb25-bbbf-4ca9-b460-462b2f0c7a5d.png?v=1765981270&width=1200'
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Studio+Apartment',
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=Garden+Area'
             ],
             currentImageIndex: 0
         },
@@ -219,9 +216,7 @@ export default class ConstructionProjects extends LightningElement {
             price: 239000,
             features: ['Balcony', 'Elevator'],
             images: [
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg291.OG.png?v=1765981217&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg291.OG.png?v=1765981217&width=1200',
-                'https://immobilien.weisenburger.de/cdn/shop/files/HausA3Whg291.OG.png?v=1765981217&width=1200'
+                'https://via.placeholder.com/800x600/1a4d8f/ffffff?text=1-Room+with+Balcony'
             ],
             currentImageIndex: 0
         }
