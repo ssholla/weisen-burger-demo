@@ -11,6 +11,7 @@ export default class ConstructionProjectResults extends LightningElement {
     selectedLocation = '';
     selectedRegion = '';
     selectedPropertyType = '';
+    selectedSort = '';
     // Modal state
     showDetailModal = false;
     @track selectedProject = null;
