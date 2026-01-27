@@ -1,9 +1,10 @@
 import { LightningElement, track, wire } from 'lwc';
+import { NavigationMixin } from 'lightning/navigation';
 import getProjects from '@salesforce/apex/ConstructionProjectsController.getProjects';
 import { subscribe, MessageContext } from 'lightning/messageService';
 import PROJECT_FILTERS from '@salesforce/messageChannel/ProjectFilters__c';
 
-export default class ConstructionProjectResults extends LightningElement {
+export default class ConstructionProjectResults extends NavigationMixin(LightningElement) {
     // Filter values
     selectedPrice = '';
     selectedRooms = '';
@@ -287,5 +288,19 @@ export default class ConstructionProjectResults extends LightningElement {
 
     handleContactFromDetail() {
         console.log('Contact for', this.selectedProject.title);
+    }
+
+    handleOpenRecordToSalesforce() {
+        if (!this.selectedProject || !this.selectedProject.id) {
+            return;
+        }
+
+        this[NavigationMixin.Navigate]({
+            type: 'standard__recordPage',
+            attributes: {
+                recordId: this.selectedProject.id,
+                actionName: 'view'
+            }
+        });
     }
 }
