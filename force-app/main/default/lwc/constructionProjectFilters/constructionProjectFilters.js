@@ -1,6 +1,7 @@
 import { LightningElement, wire } from 'lwc';
 import { publish, MessageContext } from 'lightning/messageService';
 import PROJECT_FILTERS from '@salesforce/messageChannel/ProjectFilters__c';
+import getLocations from '@salesforce/apex/LocationService.getLocations';
 
 export default class ConstructionProjectFilters extends LightningElement {
     selectedPrice = '';
@@ -9,6 +10,11 @@ export default class ConstructionProjectFilters extends LightningElement {
     selectedLocation = '';
     selectedRegion = '';
     selectedPropertyType = '';
+
+    // dynamic location options populated from Apex
+    _locationOptions = [
+        { label: 'All Projects', value: '' }
+    ];
 
     @wire(MessageContext)
     messageContext;
@@ -44,10 +50,21 @@ export default class ConstructionProjectFilters extends LightningElement {
     }
 
     get locationOptions() {
-        return [
-            { label: 'All Locations', value: '' },
-            { label: 'Winnenden', value: 'Winnenden' }
-        ];
+        return this._locationOptions;
+    }
+
+    @wire(getLocations)
+    wiredLocations({ data, error }) {
+        if (data) {
+            this._locationOptions = [
+                { label: 'All Projects', value: '' },
+                ...data.map((loc) => ({ label: loc, value: loc }))
+            ];
+        } else if (error) {
+            this._locationOptions = [
+                { label: 'All Projects', value: '' }
+            ];
+        }
     }
 
     get regionOptions() {

@@ -3,16 +3,15 @@
         <h2 class="filters-title">Filter Results</h2>
         <div class="filters-grid">
 
-
-            <!-- Region Filter -->
+            <!-- Location Filter -->
             <div class="filter-item">
                 <label class="filter-label">Project</label>
                 <lightning-combobox
-                    name="region"
-                    placeholder="Select Region"
-                    options={regionOptions}
-                    value={selectedRegion}
-                    onchange={handleRegionChange}
+                    name="location"
+                    placeholder="Select Location"
+                    options={locationOptions}
+                    value={selectedLocation}
+                    onchange={handleLocationChange}
                     variant="label-hidden"
                     class="filter-input">
                 </lightning-combobox>
@@ -60,15 +59,16 @@
                 </lightning-combobox>
             </div>
 
-            <!-- Location Filter -->
+            
+            <!-- Region Filter -->
             <div class="filter-item">
-                <label class="filter-label">Location</label>
+                <label class="filter-label">Region</label>
                 <lightning-combobox
-                    name="location"
-                    placeholder="Select Location"
-                    options={locationOptions}
-                    value={selectedLocation}
-                    onchange={handleLocationChange}
+                    name="region"
+                    placeholder="Select Region"
+                    options={regionOptions}
+                    value={selectedRegion}
+                    onchange={handleRegionChange}
                     variant="label-hidden"
                     class="filter-input">
                 </lightning-combobox>
