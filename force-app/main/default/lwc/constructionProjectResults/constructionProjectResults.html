@@ -1,19 +1,22 @@
 <template>
     <div class="construction-projects-results">
-        <div class="results-header slds-m-bottom_medium">
-            <div class="results-count">
-                {resultCount} {resultLabel}
-            </div>
-            <div class="sort-dropdown">
-                <lightning-combobox
-                    name="sort"
-                    label="Sort By"
-                    placeholder="Default"
-                    options={sortOptions}
-                    value={selectedSort}
-                    onchange={handleSortChange}
-                    class="sort-select">
-                </lightning-combobox>
+        <div class="results-hero">
+            <div class="results-hero-inner">
+                <div class="results-count">
+                    {resultCount} {resultLabel}
+                </div>
+
+                <div class="sort-dropdown">
+                    <lightning-combobox
+                        name="sort"
+                        label="Sort By"
+                        placeholder="Default"
+                        options={sortOptions}
+                        value={selectedSort}
+                        onchange={handleSortChange}
+                        class="sort-select">
+                    </lightning-combobox>
+                </div>
             </div>
         </div>
 
