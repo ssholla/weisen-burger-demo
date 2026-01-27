@@ -52,7 +52,7 @@ export default class ConstructionProjectFilters extends LightningElement {
 
     get regionOptions() {
         return [
-            { label: 'All Regions', value: '' },
+            { label: 'All Projects', value: '' },
             { label: 'Greater Stuttgart', value: 'Greater Stuttgart' }
         ];
     }
