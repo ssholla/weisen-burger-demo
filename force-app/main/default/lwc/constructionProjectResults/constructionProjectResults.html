@@ -7,15 +7,18 @@
                 </div>
 
                 <div class="sort-dropdown">
-                    <lightning-combobox
-                        name="sort"
-                        label="Sort By"
-                        placeholder="Default"
-                        options={sortOptions}
-                        value={selectedSort}
-                        onchange={handleSortChange}
-                        class="sort-select">
-                    </lightning-combobox>
+                    <div class="filter-item">
+                        <label class="filter-label">Sort By</label>
+                        <lightning-combobox
+                            name="sort"
+                            placeholder="Default"
+                            options={sortOptions}
+                            value={selectedSort}
+                            onchange={handleSortChange}
+                            variant="label-hidden"
+                            class="filter-input">
+                        </lightning-combobox>
+                    </div>
                 </div>
             </div>
         </div>

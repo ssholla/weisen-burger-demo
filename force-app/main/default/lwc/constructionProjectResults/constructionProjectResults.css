@@ -54,6 +54,27 @@
     }
 }
 
+/* Filter-like label + input styling to match constructionProjectFilters */
+.filter-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-label {
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-input {
+    background-color: #ffffff;
+    border-radius: 6px;
+    --sds-c-input-color-background: #ffffff;
+}
+
 /* Projects Grid */
 .projects-container {
     margin-bottom: 3rem;
