@@ -1,125 +1,28 @@
 <template>
-    <div class="construction-projects">
-
-        <!-- Filters Section -->
-        <div class="filters-container">
-            <h2 class="filters-title">Filter Results</h2>
-            <div class="filters-grid">
-                <!-- Price Filter -->
-                <div class="filter-item">
-                    <label class="filter-label">Price</label>
-                    <lightning-combobox
-                        name="price"
-                        placeholder="Select Price Range"
-                        options={priceOptions}
-                        value={selectedPrice}
-                        onchange={handlePriceChange}
-                        variant="label-hidden"
-                        class="filter-input">
-                    </lightning-combobox>
-                </div>
-
-                <!-- Rooms Filter -->
-                <div class="filter-item">
-                    <label class="filter-label">Rooms</label>
-                    <lightning-combobox
-                        name="rooms"
-                        placeholder="Select Number of Rooms"
-                        options={roomOptions}
-                        value={selectedRooms}
-                        onchange={handleRoomsChange}
-                        variant="label-hidden"
-                        class="filter-input">
-                    </lightning-combobox>
-                </div>
-
-                <!-- Bathrooms Filter -->
-                <div class="filter-item">
-                    <label class="filter-label">Bathrooms</label>
-                    <lightning-combobox
-                        name="bathrooms"
-                        placeholder="Select Number of Bathrooms"
-                        options={bathroomOptions}
-                        value={selectedBathrooms}
-                        onchange={handleBathroomsChange}
-                        variant="label-hidden"
-                        class="filter-input">
-                    </lightning-combobox>
-                </div>
-
-                <!-- Location Filter -->
-                <div class="filter-item">
-                    <label class="filter-label">Location</label>
-                    <lightning-combobox
-                        name="location"
-                        placeholder="Select Location"
-                        options={locationOptions}
-                        value={selectedLocation}
-                        onchange={handleLocationChange}
-                        variant="label-hidden"
-                        class="filter-input">
-                    </lightning-combobox>
-                </div>
-
-                <!-- Region Filter -->
-                <div class="filter-item">
-                    <label class="filter-label">Region</label>
-                    <lightning-combobox
-                        name="region"
-                        placeholder="Select Region"
-                        options={regionOptions}
-                        value={selectedRegion}
-                        onchange={handleRegionChange}
-                        variant="label-hidden"
-                        class="filter-input">
-                    </lightning-combobox>
-                </div>
-
-                <!-- Property Type Filter -->
-                <div class="filter-item">
-                    <label class="filter-label">Property Type</label>
-                    <lightning-combobox
-                        name="propertyType"
-                        placeholder="Select Property Type"
-                        options={propertyTypeOptions}
-                        value={selectedPropertyType}
-                        onchange={handlePropertyTypeChange}
-                        variant="label-hidden"
-                        class="filter-input">
-                    </lightning-combobox>
-                </div>
-            </div>
-
-            <!-- Sort Filter (Below main filters) -->
-            <div class="sort-container">
-                <div class="filter-item">
-                    <label class="filter-label">Sort</label>
-                    <lightning-combobox
-                        name="sort"
-                        placeholder="Sort"
-                        options={sortOptions}
-                        value={selectedSort}
-                        onchange={handleSortChange}
-                        variant="label-hidden"
-                        class="filter-input">
-                    </lightning-combobox>
-                </div>
-            </div>
-
-            <!-- Filter Actions -->
-            <div class="filter-actions">
-                <button
-                    onclick={handleClearFilters}
-                    class="clear-button">
-                    Clear Filters
-                </button>
+    <div class="construction-projects-results">
+        <div class="results-hero">
+            <div class="results-hero-inner">
                 <div class="results-count">
                     {resultCount} {resultLabel}
+                </div>
+
+                <div class="sort-dropdown">
+                    <div class="filter-item">
+                        <label class="filter-label">Sort By</label>
+                        <lightning-combobox
+                            name="sort"
+                            placeholder="Default"
+                            options={sortOptions}
+                            value={selectedSort}
+                            onchange={handleSortChange}
+                            variant="label-hidden"
+                            class="filter-input">
+                        </lightning-combobox>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Projects Grid -->
         <div class="projects-container">
             <template if:true={hasProjects}>
                 <div class={projectsGridClass}>
@@ -228,17 +131,9 @@
                     </template>
                 </div>
             </template>
-
-            <!-- No Results Message -->
             <template if:false={hasProjects}>
-                <div class="no-results">
-                    <lightning-icon 
-                        icon-name="utility:search" 
-                        size="large"
-                        class="no-results-icon">
-                    </lightning-icon>
-                    <h3>No projects found</h3>
-                    <p>Try adjusting your filters to see more results</p>
+                <div class="slds-p-around_medium slds-text-align_center slds-text-heading_medium">
+                    No projects match your criteria.
                 </div>
             </template>
         </div>
@@ -306,9 +201,6 @@
                                         <span class="detail-value">{selectedProject.pricePerSqm}</span>
                                     </div>
                                 </div>
-
-                                <!-- Action Buttons (moved to footer) -->
-                                <!-- ...existing code... -->
                             </div>
 
                             <!-- Right Column: Image Carousel -->
@@ -362,8 +254,7 @@
 
                     <!-- Modal Footer -->
                     <footer class="detail-modal-footer">
-                        <button class="custom-download-button" onclick={handleDownloadExpose}>Download Exposé</button>
-                        <button class="custom-contact-button" onclick={handleContactFromDetail}>Contact Us</button>
+                        <button class="custom-download-button" onclick={handleOpenRecordToSalesforce}>Open record to Salesforce</button>
                     </footer>
 
                 </div>

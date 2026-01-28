@@ -1,0 +1,22 @@
+<template>
+    <g transform={transform} class="task-group" onclick={handleClick} onkeyup={handleKeyUp} tabindex="0" role="button" aria-label={ariaLabel} style="cursor: pointer;">
+        <!-- Task Bar -->
+        <rect 
+            x="0" 
+            y="0" 
+            width={width} 
+            height="20" 
+            rx="5" 
+            fill={color}
+            stroke="white"
+            stroke-width="1"
+            title={ariaLabel}
+        >
+        </rect>
+
+        <!-- Label (right of bar or inside) -->
+        <text x="5" y="14" font-size="10" fill="white" style="pointer-events: none;">
+            {task.contactName}: {task.name}
+        </text>
+    </g>
+</template>

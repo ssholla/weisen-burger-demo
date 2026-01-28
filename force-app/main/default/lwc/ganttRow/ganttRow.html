@@ -1,0 +1,22 @@
+<template>
+    <!-- Render Phase Label -->
+    <g class="phase-row">
+         <!-- Row Background/Divider line (optional) -->
+         <line x1="0" y1={rowHeight} x2="100%" y2={rowHeight} stroke="#e5e5e5" stroke-width="1"></line>
+
+         <!-- Phase Name Label (Sidebar area usually, but here fixed at x=10 for simplicity) -->
+         <text x="5" y="20" font-weight="bold" font-size="14" fill="#00396b">{phase.name}</text>
+         
+         <!-- Render Tasks -->
+         <template for:each={tasks} for:item="task" for:index="index">
+              <!-- Stagger tasks vertically within the row so they don't overlap too much -->
+              <c-gantt-task 
+                  key={task.id}
+                  task={task}
+                  pixels-per-day={pixelsPerDay}
+                  range-start={rangeStart}
+                  vertical-offset={index}
+              ></c-gantt-task>
+         </template>
+    </g>
+</template>

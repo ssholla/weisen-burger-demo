@@ -1,0 +1,153 @@
+.gantt-wrapper {
+    /* Transparent or just layout */
+    margin: 1rem;
+}
+
+.gantt-section {
+    background-color: #0e2e42;
+    color: white;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+/* Header/Controls within the dark card */
+.title-text {
+    font-weight: 300;
+    letter-spacing: 1px;
+    color: #ffffff;
+}
+
+.date-input {
+    --slds-c-input-color-background: #163f5f;
+    --slds-c-input-text-color: white;
+    --slds-c-input-color-border: #2c5c85;
+}
+
+.gantt-section {
+    background-color: #0e2e42;
+    overflow-x: auto; /* Allow scroll if needed on this specific block */
+    position: relative;
+    /* rounded corners already inherited from main block */
+}
+
+/* Glassy Tooltip */
+.glassy-tooltip {
+    position: absolute;
+    z-index: 9999;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #1a1b1e;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.4);
+    font-size: 12px;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    min-width: 150px;
+}
+
+.tooltip-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    font-size: 13px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 4px;
+}
+
+.tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+.tooltip-label {
+    color: #666;
+    margin-right: 8px;
+}
+
+.gantt-svg {
+    background-color: #0e2e42;
+    display: block;
+    min-width: 800px;
+    border-radius: 0.75rem;
+}
+
+/* Axis Styles */
+.axis-header-rect {
+    fill: #0e2e42;
+}
+
+.axis-line {
+    stroke: #2c5c85; /* Lighter blue for grid */
+    stroke-width: 1;
+}
+
+.axis-line-week {
+    stroke: #1c4566;
+    stroke-width: 0.5;
+}
+
+.axis-text {
+    fill: #ffffff;
+    font-size: 12px;
+    font-weight: 500;
+    anchor: middle;
+}
+
+.axis-text-week {
+    fill: #a0c4df;
+    font-size: 10px;
+}
+
+/* Row Styles */
+.row-line {
+    stroke: #2c5c85;
+    stroke-width: 1;
+}
+
+.sidebar-text-phase {
+    fill: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.sidebar-text-task {
+    fill: #d0e5f5;
+    font-size: 12px;
+}
+
+.connector-line {
+    stroke: #f2c960; /* Default connector color, can be dynamic */
+    stroke-width: 1.5;
+    fill: none;
+}
+
+/* Inputs override for dark theme */
+.date-input {
+    --slds-c-input-color-background: #113652;
+    --slds-c-input-text-color: #ffffff;
+    --slds-c-input-color-border: #3a6d99;
+    --slds-c-input-color-border-focus: #5bc0de;
+    --slds-c-input-shadow-focus: 0 0 3px #5bc0de;
+    --slds-c-input-radius-border: 6px;
+    width: 180px;
+    font-weight: 500;
+}
+
+/* Try to invert the calendar icon which is inside Shadow DOM usually, 
+   but sometimes these hooks or standard css inheritance works for native inputs if not fully shadowed */
+.date-input {
+    color-scheme: dark; /* This instructs the browser to render native controls (like picker) in dark mode */
+}
+
+.title-text {
+    fill: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+}

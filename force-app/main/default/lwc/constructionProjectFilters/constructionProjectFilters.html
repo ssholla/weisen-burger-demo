@@ -1,0 +1,101 @@
+<template>
+    <div class="filters-container">
+        <h2 class="filters-title">Filter Results</h2>
+        <div class="filters-grid">
+
+            <!-- Location Filter -->
+            <div class="filter-item">
+                <label class="filter-label">Project</label>
+                <lightning-combobox
+                    name="location"
+                    placeholder="Select Location"
+                    options={locationOptions}
+                    value={selectedLocation}
+                    onchange={handleLocationChange}
+                    variant="label-hidden"
+                    class="filter-input">
+                </lightning-combobox>
+            </div>
+
+            <!-- Price Filter -->
+            <div class="filter-item">
+                <label class="filter-label">Price</label>
+                <lightning-combobox
+                    name="price"
+                    placeholder="Select Price Range"
+                    options={priceOptions}
+                    value={selectedPrice}
+                    onchange={handlePriceChange}
+                    variant="label-hidden"
+                    class="filter-input">
+                </lightning-combobox>
+            </div>
+
+            <!-- Rooms Filter -->
+            <div class="filter-item">
+                <label class="filter-label">Rooms</label>
+                <lightning-combobox
+                    name="rooms"
+                    placeholder="Select Number of Rooms"
+                    options={roomOptions}
+                    value={selectedRooms}
+                    onchange={handleRoomsChange}
+                    variant="label-hidden"
+                    class="filter-input">
+                </lightning-combobox>
+            </div>
+
+            <!-- Bathrooms Filter -->
+            <div class="filter-item">
+                <label class="filter-label">Bathrooms</label>
+                <lightning-combobox
+                    name="bathrooms"
+                    placeholder="Select Number of Bathrooms"
+                    options={bathroomOptions}
+                    value={selectedBathrooms}
+                    onchange={handleBathroomsChange}
+                    variant="label-hidden"
+                    class="filter-input">
+                </lightning-combobox>
+            </div>
+
+            
+            <!-- Region Filter -->
+            <div class="filter-item">
+                <label class="filter-label">Region</label>
+                <lightning-combobox
+                    name="region"
+                    placeholder="Select Region"
+                    options={regionOptions}
+                    value={selectedRegion}
+                    onchange={handleRegionChange}
+                    variant="label-hidden"
+                    class="filter-input">
+                </lightning-combobox>
+            </div>
+
+            <!-- Property Type Filter -->
+            <div class="filter-item">
+                <label class="filter-label">Property Type</label>
+                <lightning-combobox
+                    name="propertyType"
+                    placeholder="Select Property Type"
+                    options={propertyTypeOptions}
+                    value={selectedPropertyType}
+                    onchange={handlePropertyTypeChange}
+                    variant="label-hidden"
+                    class="filter-input">
+                </lightning-combobox>
+            </div>
+        </div>
+
+        <!-- Filter Actions -->
+        <div class="filter-actions">
+            <button
+                onclick={handleClearFilters}
+                class="clear-button">
+                Clear Filters
+            </button>
+        </div>
+    </div>
+</template>

@@ -1,77 +1,60 @@
-/* Construction Projects Component Styles */
-/* Blue Theme inspired by Object Mapping Wizard */
-
-.construction-projects {
+.construction-projects-results {
     font-family: 'Salesforce Sans', Arial, sans-serif;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem;
-    background-color: #f4f6f9;
+    padding: 1rem;
 }
 
-/* Header Section */
-.header-section {
-    text-align: center;
-    margin-bottom: 3rem;
-    padding: 2rem 0;
-}
-
-.main-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #16325c;
-    margin-bottom: 0.5rem;
-}
-
-.subtitle {
-    font-size: 1.1rem;
-    color: #54698d;
-    margin: 0;
-}
-
-/* Filters Container */
-.filters-container {
+/* Results Hero Header */
+.results-hero {
     background: linear-gradient(135deg, #1a4d8f 0%, #2563a8 100%);
-    border-radius: 12px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 12px rgba(26, 77, 143, 0.15);
-}
-
-.filters-title {
-    color: #ffffff;
-    font-size: 1.5rem;
-    font-weight: 600;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;
-    margin-top: 0;
+    box-shadow: 0 4px 12px rgba(26, 77, 143, 0.12);
 }
 
-.filters-grid {
-    display: grid;
-     /* Force 6 columns on large screens to keep in single line */
-    grid-template-columns: repeat(6, 1fr);
+.results-hero-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 1rem;
-    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
 }
 
-@media (max-width: 1200px) {
-    .filters-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
+.results-count {
+    color: #ffffff;
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.sort-dropdown {
+    min-width: 240px;
+}
+
+.sort-select {
+    --sds-c-input-color-border: rgba(255,255,255,0.85);
+    --sds-c-input-shadow-focus: 0 0 0 3px rgba(255,255,255,0.12);
+    --sds-c-input-radius-border: 8px;
+    background-color: rgba(255,255,255,0.95);
+}
+
+.sort-select label {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.875rem;
 }
 
 @media (max-width: 768px) {
-    .filters-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .results-hero-inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .sort-dropdown {
+        width: 100%;
     }
 }
 
-@media (max-width: 480px) {
-    .filters-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
+/* Filter-like label + input styling to match constructionProjectFilters */
 .filter-item {
     display: flex;
     flex-direction: column;
@@ -89,33 +72,7 @@
 .filter-input {
     background-color: #ffffff;
     border-radius: 6px;
-}
-
-/* Filter Actions */
-.filter-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.clear-button {
-    background-color: #ffffff;
-    color: #1a4d8f;
-    font-weight: 600;
-    border-radius: 6px;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    cursor: pointer;
-    font-size: 0.95rem; 
-}
-
-.results-count {
-    color: #ffffff;
-    font-size: 1rem;
-    font-weight: 600;
+    --sds-c-input-color-background: #ffffff;
 }
 
 /* Projects Grid */
@@ -201,34 +158,31 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: opacity 0.3s ease;
 }
 
 .image-badge {
     position: absolute;
     top: 1rem;
-    left: 1rem;
-    background-color: #1a4d8f;
-    color: #ffffff;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
+    right: 1rem;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #1a4d8f;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
     font-weight: 700;
-    font-size: 0.875rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .carousel-nav {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.8);
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    z-index: 10;
+    --sds-c-icon-color-foreground-default: #1a4d8f;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 2;
 }
 
 .carousel-nav:hover {
@@ -250,26 +204,21 @@
     transform: translateX(-50%);
     display: flex;
     gap: 0.5rem;
-    z-index: 10;
+    z-index: 2;
 }
 
 .indicator {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background-color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-}
-
-.indicator:hover {
-    background-color: rgba(255, 255, 255, 0.8);
-    transform: scale(1.2);
+    transition: background-color 0.2s ease;
 }
 
 .indicator.active {
     background-color: #ffffff;
-    transform: scale(1.3);
+    transform: scale(1.2);
 }
 
 /* Project Info */
@@ -288,7 +237,7 @@
 
 .project-title {
     color: #16325c;
-    font-size: 1.125rem;
+    font-size: 1.000rem;
     font-weight: 700;
     margin: 0 0 1rem 0;
     line-height: 1.4;
@@ -361,124 +310,12 @@
     background-color: #2563a8;
 }
 
-/* No Results */
-.no-results {
-    text-align: center;
-    padding: 4rem 2rem;
-    background-color: #ffffff;
-    border-radius: 12px;
-}
-
-.no-results-icon {
-    color: #c9d3df;
-    margin-bottom: 1rem;
-}
-
-.no-results h3 {
-    color: #16325c;
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.no-results p {
-    color: #54698d;
-    font-size: 1rem;
-}
-
-/* Contact Section */
-.contact-section {
-    background: linear-gradient(135deg, #1a4d8f 0%, #2563a8 100%);
-    border-radius: 12px;
-    padding: 3rem 2rem;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(26, 77, 143, 0.15);
-}
-
-.contact-title {
-    color: #ffffff;
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    margin-top: 0;
-}
-
-.contact-subtitle {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
-}
-
-.contact-button {
-    background-color: #ffffff;
-    color: #1a4d8f;
-    font-weight: 700;
-    font-size: 1.1rem;
-    padding: 0.75rem 2.5rem;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.contact-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .construction-projects {
-        padding: 1rem;
-    }
-
-    .main-title {
-        font-size: 2rem;
-    }
-
-    .filters-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
-    .filter-actions {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: stretch;
-    }
-
-    .projects-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-
-    .project-footer {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: stretch;
-    }
-
-    .view-button {
-        width: 100%;
-    }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-    .projects-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Lightning Component Override */
-:host {
-    display: block;
-}
-
 /* Detail Modal Styles */
 .detail-modal-container {
-    width: 90%; /* Set the width to 90% of the screen */
-    max-width: none; /* Remove the max-width constraint */
+    width: 90%;
+    max-width: none;
     min-height: 600px;
-    margin: 0 auto; /* Center the modal horizontally */
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
 }
@@ -489,21 +326,21 @@
     background-color: #ffffff;
     padding: 1rem;
     display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
+    justify-content: flex-end;
     border-top: 1px solid #d8dde6;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
     z-index: 20;
 }
 
 .detail-modal-footer button {
-    margin-left: 1rem; /* Add spacing between buttons */
+    margin-left: 1rem;
 }
 
 .detail-modal-body {
     padding: 0;
     overflow-y: auto;
     max-height: calc(100vh - 200px);
-    padding-bottom: 80px; /* reserve space so content doesn't hide behind sticky footer */
+    padding-bottom: 80px;
 }
 
 .detail-location {
@@ -605,31 +442,6 @@
     text-align: right;
 }
 
-/* Detail Actions */
-.detail-actions {
-    display: none; /* moved to sticky footer */
-    gap: 1rem;
-    margin-top: auto;
-    padding-top: 1.5rem;
-}
-
-.download-button {
-    flex: 1;
-    background-color: #2e844a;
-    color: #ffffff;
-    font-weight: 600;
-    border-radius: 6px;
-}
-
-.contact-detail-button {
-    flex: 1;
-    background-color: #ffffff;
-    color: #16325c;
-    border: 2px solid #16325c;
-    font-weight: 600;
-    border-radius: 6px;
-}
-
 /* Right Column - Carousel */
 .detail-right {
     position: relative;
@@ -729,19 +541,6 @@
     .detail-carousel-container {
         min-height: 300px;
     }
-}
-
-.custom-modal-close-button {
-    background-color: transparent;
-    border: none;
-    color: #54698d;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: color 0.3s ease;
-}
-
-.custom-modal-close-button:hover {
-    color: #1a4d8f;
 }
 
 .custom-download-button {
