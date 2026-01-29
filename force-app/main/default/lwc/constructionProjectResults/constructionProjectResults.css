@@ -5,7 +5,7 @@
 
 /* Results Hero Header */
 .results-hero {
-    background: linear-gradient(135deg, #1a4d8f 0%, #2563a8 100%);
+    background: linear-gradient(135deg, #0e2e42 0%, #0e2e42 100%);
     border-radius: 10px;
     padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;
@@ -166,7 +166,7 @@
     top: 1rem;
     right: 1rem;
     background-color: rgba(255, 255, 255, 0.9);
-    color: #1a4d8f;
+    color: #0e2e42;
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
     font-size: 0.75rem;
@@ -180,7 +180,7 @@
     transform: translateY(-50%);
     background-color: rgba(255, 255, 255, 0.8);
     border-radius: 50%;
-    --sds-c-icon-color-foreground-default: #1a4d8f;
+    --sds-c-icon-color-foreground-default: #0e2e42;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     z-index: 2;
 }
@@ -236,7 +236,7 @@
 }
 
 .project-title {
-    color: #16325c;
+    color: #0e2e42;
     font-size: 1.000rem;
     font-weight: 700;
     margin: 0 0 1rem 0;
@@ -260,7 +260,7 @@
 }
 
 .detail-icon {
-    color: #1a4d8f;
+    color: #0e2e42;
 }
 
 .project-features {
@@ -273,7 +273,7 @@
 
 .feature-tag {
     background-color: #e8f3ff;
-    color: #1a4d8f;
+    color: #0e2e42;
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
     font-size: 0.75rem;
@@ -289,13 +289,13 @@
 }
 
 .project-price {
-    color: #1a4d8f;
+    color: #0e2e42;
     font-size: 1.5rem;
     font-weight: 700;
 }
 
 .view-button {
-    background-color: #1a4d8f;
+    background-color: #0e2e42;
     color: #ffffff;
     font-weight: 600;
     border-radius: 6px;
@@ -307,7 +307,7 @@
 }
 
 .view-button:hover {
-    background-color: #2563a8;
+    background-color: #0e2e42;
 }
 
 /* Detail Modal Styles */
@@ -544,7 +544,7 @@
 }
 
 .custom-download-button {
-    background-color: #1a4d8f;
+    background-color: #0e2e42;
     color: #ffffff;
     border: none;
     padding: 0.75rem 1.5rem;
@@ -561,8 +561,8 @@
 
 .custom-contact-button {
     background-color: #ffffff;
-    color: #1a4d8f;
-    border: 2px solid #1a4d8f;
+    color: #0e2e42;
+    border: 2px solid #0e2e42;
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
     font-weight: bold;
@@ -572,6 +572,6 @@
 }
 
 .custom-contact-button:hover {
-    background-color: #1a4d8f;
+    background-color: #0e2e42;
     color: #ffffff;
 }

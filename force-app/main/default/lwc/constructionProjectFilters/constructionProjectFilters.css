@@ -1,5 +1,5 @@
 .filters-container {
-    background: linear-gradient(135deg, #1a4d8f 0%, #2563a8 100%);
+    background: linear-gradient(135deg, #0e2e42 0%, #0e2e42 100%);
     border-radius: 12px;
     padding: 2rem;
     margin-bottom: 2rem;
@@ -70,7 +70,7 @@
 
 .clear-button {
     background-color: #ffffff;
-    color: #1a4d8f;
+    color: #0e2e42;
     font-weight: 600;
     border-radius: 6px;
     padding: 0.75rem 1.5rem;
