@@ -2,7 +2,7 @@
     <div class="construction-projects-map">
         <div class="results-hero">
             <div class="results-hero-inner">
-                <div class="results-count">Map View</div>
+                <div class="results-count">{resultCount} {resultLabel}</div>
                 <div class="map-controls">
                     <!-- future controls (zoom, layers) -->
                 </div>
@@ -10,11 +10,9 @@
         </div>
 
         <div class="map-container">
-            <div style="height: 500px;">
-                <lightning-map map-markers={mapMarkers} center={mapCenter} zoom-level={mapZoomLevel}
-                    markers-title="Construction Projects" list-view="hidden">
-                </lightning-map>
-            </div>
+            <lightning-map map-markers={mapMarkers} center={mapCenter} zoom-level={mapZoomLevel}
+                markers-title="Construction Projects" list-view="hidden">
+            </lightning-map>
         </div>
     </div>
 </template>

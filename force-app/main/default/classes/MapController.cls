@@ -51,25 +51,136 @@ public with sharing class MapController {
      */
     @AuraEnabled(cacheable=true)
     public static List<ProjectMapWrapper> getProjectsWithUnits() {
+        return getFilteredProjects(null, null, null, null, null, null);
+    }
+    
+    /**
+     * @description Retrieves filtered KS_Project__c records with their related Units
+     * @param priceRange Price range in format 'min-max'
+     * @param rooms Number of rooms filter
+     * @param bathrooms Number of bathrooms filter
+     * @param location City location filter
+     * @param region Region filter
+     * @param propertyType Unit type filter
+     * @return List of ProjectMapWrapper containing projects and their filtered units
+     */
+    @AuraEnabled
+    public static List<ProjectMapWrapper> getFilteredProjects(
+        String priceRange, 
+        String rooms, 
+        String bathrooms, 
+        String location, 
+        String region, 
+        String propertyType
+    ) {
         List<ProjectMapWrapper> projects = new List<ProjectMapWrapper>();
         
-        // Query all projects with their address information and related units
-        List<KS_Project__c> projectRecords = [
-            SELECT Id, Name, KS_Title__c, KS_Status__c, KS_Region__c,
-                   KS_TotalUnitsPrice__c, KS_TotalM2__c,
-                   KS_ProjectAddress__Street__s, KS_ProjectAddress__City__s,
-                   KS_ProjectAddress__StateCode__s, KS_ProjectAddress__PostalCode__s,
-                   KS_ProjectAddress__CountryCode__s,
-                   KS_ProjectAddress__Latitude__s, KS_ProjectAddress__Longitude__s,
-                   (SELECT Id, Name, KS_Type__c, KS_Status__c, 
-                           KS_NumberOfRooms__c, KS_NumberOfBaths__c,
-                           KS_M2__c, KS_Price__c, KS_Description__c,
-                           KS_InteriorQuality__c
-                    FROM Units__r
-                    ORDER BY Name)
-            FROM KS_Project__c
-            ORDER BY Name
-        ];
+        // Build dynamic SOQL for units
+        String unitQuery = 'SELECT Id, Name, KS_Type__c, KS_Status__c, ' +
+                          'KS_NumberOfRooms__c, KS_NumberOfBaths__c, ' +
+                          'KS_M2__c, KS_Price__c, KS_Description__c, ' +
+                          'KS_InteriorQuality__c, KS_Project__c ' +
+                          'FROM KS_Unit__c WHERE KS_Project__c != null';
+        
+        List<String> unitConditions = new List<String>();
+        
+        // Price filter
+        if (String.isNotBlank(priceRange)) {
+            List<String> priceParts = priceRange.split('-');
+            if (priceParts.size() == 2) {
+                Decimal minPrice = Decimal.valueOf(priceParts[0]);
+                Decimal maxPrice = Decimal.valueOf(priceParts[1]);
+                unitConditions.add('KS_Price__c >= ' + minPrice + ' AND KS_Price__c <= ' + maxPrice);
+            }
+        }
+        
+        // Rooms filter
+        if (String.isNotBlank(rooms)) {
+            Integer roomCount = Integer.valueOf(rooms);
+            if (roomCount >= 5) {
+                unitConditions.add('KS_NumberOfRooms__c >= 5');
+            } else {
+                unitConditions.add('KS_NumberOfRooms__c = ' + roomCount);
+            }
+        }
+        
+        // Bathrooms filter
+        if (String.isNotBlank(bathrooms)) {
+            Integer bathroomCount = Integer.valueOf(bathrooms);
+            if (bathroomCount >= 3) {
+                unitConditions.add('KS_NumberOfBaths__c >= 3');
+            } else {
+                unitConditions.add('KS_NumberOfBaths__c = ' + bathroomCount);
+            }
+        }
+        
+        // Property type filter
+        if (String.isNotBlank(propertyType)) {
+            unitConditions.add('KS_Type__c = \'' + String.escapeSingleQuotes(propertyType) + '\'');
+        }
+        
+        if (!unitConditions.isEmpty()) {
+            unitQuery += ' AND ' + String.join(unitConditions, ' AND ');
+        }
+        
+        // Get filtered units
+        List<KS_Unit__c> filteredUnits = Database.query(unitQuery);
+        
+        // Get unique project IDs from filtered units
+        Set<Id> projectIds = new Set<Id>();
+        for (KS_Unit__c unit : filteredUnits) {
+            projectIds.add(unit.KS_Project__c);
+        }
+        
+        // Build project query conditions
+        String projectQuery = 'SELECT Id, Name, KS_Title__c, KS_Status__c, KS_Region__c, ' +
+                             'KS_TotalUnitsPrice__c, KS_TotalM2__c, ' +
+                             'KS_ProjectAddress__Street__s, KS_ProjectAddress__City__s, ' +
+                             'KS_ProjectAddress__StateCode__s, KS_ProjectAddress__PostalCode__s, ' +
+                             'KS_ProjectAddress__CountryCode__s, ' +
+                             'KS_ProjectAddress__Latitude__s, KS_ProjectAddress__Longitude__s ' +
+                             'FROM KS_Project__c WHERE Id != null';
+        
+        List<String> projectConditions = new List<String>();
+        
+        // Only include projects with matching units if filters are applied
+        if (!unitConditions.isEmpty()) {
+            if (!projectIds.isEmpty()) {
+                projectConditions.add('Id IN :projectIds');
+            } else {
+                // If unit filters applied but no matching units, return empty list
+                return new List<ProjectMapWrapper>();
+            }
+        }
+        
+        // Location filter (project name)
+        if (String.isNotBlank(location)) {
+            projectConditions.add('Name = \'' + String.escapeSingleQuotes(location) + '\'');
+        }
+        
+        // Region filter
+        if (String.isNotBlank(region)) {
+            projectConditions.add('KS_Region__c = \'' + String.escapeSingleQuotes(region) + '\'');
+        }
+        
+        if (!projectConditions.isEmpty()) {
+            projectQuery += ' AND ' + String.join(projectConditions, ' AND ');
+        }
+        
+        projectQuery += ' ORDER BY Name';
+        
+        // Query projects
+        List<KS_Project__c> projectRecords = Database.query(projectQuery);
+        
+        
+        // Create a map of project ID to filtered units
+        Map<Id, List<KS_Unit__c>> projectToUnitsMap = new Map<Id, List<KS_Unit__c>>();
+        for (KS_Unit__c unit : filteredUnits) {
+            if (!projectToUnitsMap.containsKey(unit.KS_Project__c)) {
+                projectToUnitsMap.put(unit.KS_Project__c, new List<KS_Unit__c>());
+            }
+            projectToUnitsMap.get(unit.KS_Project__c).add(unit);
+        }
         
         // Transform to wrapper objects
         for (KS_Project__c proj : projectRecords) {
@@ -83,7 +194,6 @@ public with sharing class MapController {
             wrapper.region = proj.KS_Region__c;
             wrapper.totalPrice = proj.KS_TotalUnitsPrice__c;
             wrapper.totalM2 = proj.KS_TotalM2__c;
-            wrapper.totalUnits = proj.Units__r != null ? proj.Units__r.size() : 0;
             
             // Address components
             wrapper.street = proj.KS_ProjectAddress__Street__s;
@@ -94,13 +204,14 @@ public with sharing class MapController {
             wrapper.latitude = proj.KS_ProjectAddress__Latitude__s;
             wrapper.longitude = proj.KS_ProjectAddress__Longitude__s;
             
-            // Related units
-            if (proj.Units__r != null) {
-                for (KS_Unit__c unit : proj.Units__r) {
+            // Add filtered units for this project
+            List<KS_Unit__c> projectUnits = projectToUnitsMap.get(proj.Id);
+            if (projectUnits != null) {
+                for (KS_Unit__c unit : projectUnits) {
                     UnitWrapper unitWrapper = new UnitWrapper();
                     unitWrapper.id = unit.Id;
                     unitWrapper.code = unit.Name;
-                    unitWrapper.title = unit.Name; // You can add a Title field if needed
+                    unitWrapper.title = unit.Name;
                     unitWrapper.type = unit.KS_Type__c;
                     unitWrapper.status = unit.KS_Status__c;
                     unitWrapper.numberOfRooms = (Integer)unit.KS_NumberOfRooms__c;
@@ -114,6 +225,7 @@ public with sharing class MapController {
                 }
             }
             
+            wrapper.totalUnits = wrapper.units.size();
             projects.add(wrapper);
         }
         
