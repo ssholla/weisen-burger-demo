@@ -1,0 +1,64 @@
+.construction-projects-map {
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+    padding: 1rem;
+}
+
+/* Reuse the results hero look for a consistent header */
+.results-hero {
+    background: linear-gradient(135deg, #0e2e42 0%, #0e2e42 100%);
+    border-radius: 10px;
+    padding: 1.2rem 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(26, 77, 143, 0.12);
+}
+
+.results-hero-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    min-height: 54px;
+    /* Match height of results component which has a dropdown */
+}
+
+.results-count {
+    color: #ffffff;
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.map-container {
+    margin-top: 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.map-placeholder {
+    background: #f4f7fb;
+    border-radius: 10px;
+    height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(20, 45, 78, 0.04);
+}
+
+.map-placeholder-inner {
+    color: #6b778d;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .results-hero-inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .map-placeholder {
+        height: 300px;
+    }
+}
