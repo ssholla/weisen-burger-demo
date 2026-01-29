@@ -83,7 +83,9 @@ export default class ConstructionProjects extends LightningElement {
             { label: 'All Property Types', value: '' },
             { label: 'Apartment', value: 'Apartment' },
             { label: 'Penthouse', value: 'Penthouse' },
-            { label: 'Studio', value: 'Studio' }
+            { label: 'Studio', value: 'Studio' },
+            { label: 'Commercial', value: 'Commercial' },
+            { label: 'House', value: 'House' }
         ];
     }
 
