@@ -112,7 +112,15 @@ public with sharing class ConstructionProjectsController {
         Database.DMLOptions dml = new Database.DMLOptions(); 
         dml.DuplicateRuleHeader.allowSave = true;
 
+        
+
         database.insert(l,dml);
+
+        KS_InterestedParties__c ip = new KS_InterestedParties__c();
+        ip.KS_Unit__c = unitId;
+        ip.KS_Lead__c = l.Id;
+        insert ip;
+
         return l.Id;
     }
 }
