@@ -311,15 +311,22 @@
                             </div>
 
                             <div class="register-fields-grid">
-                                <lightning-input label="First Name" value={registerFirstName} onchange={handleRegisterInput} data-name="firstName" class="register-input"></lightning-input>
-                                <lightning-input label="Last Name" value={registerLastName} onchange={handleRegisterInput} data-name="lastName" class="register-input" required></lightning-input>
-                                <lightning-input label="Email" type="email" value={registerEmail} onchange={handleRegisterInput} data-name="email" class="register-input"></lightning-input>
-                                <lightning-input label="Phone" type="tel" value={registerPhone} onchange={handleRegisterInput} data-name="phone" class="register-input"></lightning-input>
-                                <lightning-input label="Mobile" type="tel" value={registerMobile} onchange={handleRegisterInput} data-name="mobile" class="register-input"></lightning-input>
-                                <lightning-input label="Street" value={registerStreet} onchange={handleRegisterInput} data-name="street" class="register-input"></lightning-input>
-                                <lightning-input label="City" value={registerCity} onchange={handleRegisterInput} data-name="city" class="register-input"></lightning-input>
-                                <lightning-input label="Postal Code" value={registerPostalCode} onchange={handleRegisterInput} data-name="postalCode" class="register-input"></lightning-input>
-                                <lightning-input label="Country" value={registerCountry} onchange={handleRegisterInput} data-name="country" class="register-input"></lightning-input>
+                                <div class="register-section register-main">
+                                    <lightning-input label="First Name" value={registerFirstName} onchange={handleRegisterInput} data-name="firstName" class="register-input"></lightning-input>
+                                    <lightning-input label="Last Name" value={registerLastName} onchange={handleRegisterInput} data-name="lastName" class="register-input" required></lightning-input>
+                                    <lightning-input label="Email" type="email" value={registerEmail} onchange={handleRegisterInput} data-name="email" class="register-input"></lightning-input>
+                                    <lightning-input label="Phone" type="tel" value={registerPhone} onchange={handleRegisterInput} data-name="phone" class="register-input"></lightning-input>
+                                    <lightning-input label="Mobile" type="tel" value={registerMobile} onchange={handleRegisterInput} data-name="mobile" class="register-input"></lightning-input>
+                                </div>
+
+                                <div class="register-divider" role="separator" aria-hidden="true"></div>
+
+                                <div class="register-section register-address">
+                                    <lightning-input label="Street" value={registerStreet} onchange={handleRegisterInput} data-name="street" class="register-input"></lightning-input>
+                                    <lightning-input label="City" value={registerCity} onchange={handleRegisterInput} data-name="city" class="register-input"></lightning-input>
+                                    <lightning-input label="Postal Code" value={registerPostalCode} onchange={handleRegisterInput} data-name="postalCode" class="register-input"></lightning-input>
+                                    <lightning-input label="Country" value={registerCountry} onchange={handleRegisterInput} data-name="country" class="register-input"></lightning-input>
+                                </div>
                             </div>
                         </div>
                     </div>
