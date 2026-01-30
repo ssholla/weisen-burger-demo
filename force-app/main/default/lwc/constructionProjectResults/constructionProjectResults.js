@@ -356,7 +356,7 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
         try {
             const unitId = this.selectedProject ? this.selectedProject.id : null;
             const leadId = await createLead({ firstName: this.registerFirstName || null, lastName: this.registerLastName, email: this.registerEmail || null, phone: this.registerPhone || null, unitId: unitId });
-            this.dispatchEvent(new ShowToastEvent({ title: 'Success', message: 'Lead created: ' + leadId, variant: 'success' }));
+            this.dispatchEvent(new ShowToastEvent({ title: 'Success', message: 'Successfully Registered', variant: 'success' }));
             this.showRegisterModal = false;
         } catch (error) {
             console.error('Error creating lead', error);

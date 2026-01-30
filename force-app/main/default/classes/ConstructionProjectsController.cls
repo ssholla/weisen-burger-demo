@@ -119,6 +119,8 @@ public with sharing class ConstructionProjectsController {
         KS_InterestedParties__c ip = new KS_InterestedParties__c();
         ip.KS_Unit__c = unitId;
         ip.KS_Lead__c = l.Id;
+        User u = [SELECT Id,contactId FROM User WHERE Id = :UserInfo.getUserId() LIMIT 1];
+        ip.KS_Contact__c = u.ContactId;
         insert ip;
 
         return l.Id;
