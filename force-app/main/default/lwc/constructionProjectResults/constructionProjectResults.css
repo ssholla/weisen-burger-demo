@@ -244,6 +244,11 @@
 .slds-modal__header,
 .slds-modal__footer {
     border-radius: 0 !important;
+}
+
+/* Only hide overflow for modal content/container to avoid clipping positioned controls */
+.detail-modal-container,
+.slds-modal__content {
     overflow: hidden;
 }
 
