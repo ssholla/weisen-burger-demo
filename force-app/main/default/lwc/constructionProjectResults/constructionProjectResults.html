@@ -254,8 +254,15 @@
 
                     <!-- Modal Footer -->
                     <footer class="detail-modal-footer">
+
+                        <template if:true={isInternal}>
                         <button class="custom-download-button" onclick={handleOpenRecordToSalesforce}>Open record to Salesforce</button>
+                        </template>
+
+
+                        <template if:false={isInternal}>
                         <button class="custom-register-button" onclick={handleOpenRegister}>Register a deal</button>
+                        </template>
                     </footer>
 
                 </div>

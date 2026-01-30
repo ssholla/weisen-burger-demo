@@ -123,4 +123,10 @@ public with sharing class ConstructionProjectsController {
 
         return l.Id;
     }
+
+    @AuraEnabled(cacheable=true)
+    public static Boolean isExperienceCloud() {
+        // Site.getSiteId() returns a value only in Experience Cloud
+        return System.Site.getSiteId() != null;
+    }
 }

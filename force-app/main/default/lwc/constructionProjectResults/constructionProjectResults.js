@@ -5,6 +5,7 @@ import createLead from '@salesforce/apex/ConstructionProjectsController.createLe
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { subscribe, MessageContext } from 'lightning/messageService';
 import PROJECT_FILTERS from '@salesforce/messageChannel/ProjectFilters__c';
+import isExperienceCloud from '@salesforce/apex/ConstructionProjectsController.isExperienceCloud';
 
 export default class ConstructionProjectResults extends NavigationMixin(LightningElement) {
     // Filter values
@@ -15,6 +16,21 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
     selectedRegion = '';
     selectedPropertyType = '';
     selectedSort = '';
+
+    isCommunity = false;
+
+    @wire(isExperienceCloud)
+    wiredContext({ error, data }) {
+        if (data !== undefined) {
+            this.isCommunity = data;
+        } else if (error) {
+            this.isCommunity = false; // Default to false (Internal) if it fails
+        }
+    }
+
+    get isInternal() {
+        return !this.isCommunity;
+    }
 
     // Modal state
     showDetailModal = false;
