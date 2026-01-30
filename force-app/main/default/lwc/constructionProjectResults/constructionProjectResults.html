@@ -142,7 +142,16 @@
                     </template>
                 </div>
 
-                
+                <!-- Footer Pagination (duplicate of header pagination, placed under results) -->
+                <div class="footer-pagination" if:true={hasProjects}>
+                    <div class="pagination-buttons">
+                        <button class="nav-button prev" onclick={handlePreviousPage} disabled={isFirstPage} aria-label="Previous page">‹</button>
+                        <template for:each={pages} for:item="p">
+                            <button key={p.num} class={p.className} data-page={p.num} onclick={handleGoToPage} aria-label={p.num}>{p.num}</button>
+                        </template>
+                        <button class="nav-button next" onclick={handleNextPage} disabled={isLastPage} aria-label="Next page">›</button>
+                    </div>
+                </div>
             </template>
             <template if:false={hasProjects}>
                 <div class="slds-p-around_medium slds-text-align_center slds-text-heading_medium">

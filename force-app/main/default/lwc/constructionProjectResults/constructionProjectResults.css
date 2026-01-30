@@ -71,6 +71,31 @@
     }
 }
 
+/* Footer pagination (centered below results) */
+.footer-pagination {
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0 2rem 0;
+}
+
+.footer-pagination .pagination-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.footer-pagination .page-btn,
+.footer-pagination .nav-button {
+    background: #ffffff;
+    color: #0e2e42;
+    border: 1px solid rgba(14,46,66,0.08);
+}
+
+.footer-pagination .page-btn.active {
+    background: #0e2e42;
+    color: #ffffff;
+}
+
 .results-count {
     color: #ffffff;
     font-size: 1.125rem;
