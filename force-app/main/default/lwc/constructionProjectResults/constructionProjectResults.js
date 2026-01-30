@@ -44,6 +44,9 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
 
     // All projects data
     @track allProjects = [];
+    // Pagination
+    pageSize = 9;
+    @track currentPage = 1;
 
     @wire(MessageContext)
     messageContext;
@@ -72,6 +75,8 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
             this.selectedLocation = message.filters.location;
             this.selectedRegion = message.filters.region;
             this.selectedPropertyType = message.filters.propertyType;
+            // Reset to first page when filters change
+            this.currentPage = 1;
         }
     }
 
@@ -90,6 +95,8 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
 
     handleSortChange(event) {
         this.selectedSort = event.detail.value;
+        // Reset pagination when sorting changes
+        this.currentPage = 1;
     }
 
     @wire(getProjects)
@@ -99,6 +106,7 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
                 ...project,
                 currentImageIndex: 0
             }));
+            this.currentPage = 1;
         } else if (error) {
             console.error('Error loading projects', error);
         }
@@ -212,6 +220,58 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
             currency: 'EUR',
             maximumFractionDigits: 0
         }).format(price);
+    }
+    
+    // Pagination helpers
+    get paginatedProjects() {
+        const all = this.filteredProjects || [];
+        const start = (this.currentPage - 1) * this.pageSize;
+        return all.slice(start, start + this.pageSize);
+    }
+
+    get totalPages() {
+        const total = this.resultCount || 0;
+        return Math.max(1, Math.ceil(total / this.pageSize));
+    }
+
+    get pages() {
+        const pages = [];
+        for (let i = 1; i <= this.totalPages; i++) {
+            pages.push({ num: i, className: i === this.currentPage ? 'page-btn active' : 'page-btn' });
+        }
+        return pages;
+    }
+
+    get isFirstPage() {
+        return this.currentPage <= 1;
+    }
+
+    get isLastPage() {
+        return this.currentPage >= this.totalPages;
+    }
+
+    get showingStartIndex() {
+        if (this.resultCount === 0) return 0;
+        return (this.currentPage - 1) * this.pageSize + 1;
+    }
+
+    get showingEndIndex() {
+        return Math.min(this.currentPage * this.pageSize, this.resultCount);
+    }
+
+    handlePreviousPage() {
+        if (this.currentPage > 1) this.currentPage -= 1;
+    }
+
+    handleNextPage() {
+        if (this.currentPage < this.totalPages) this.currentPage += 1;
+    }
+
+    handleGoToPage(event) {
+        const page = parseInt(event.target.dataset.page, 10);
+        if (!isNaN(page) && page >= 1 && page <= this.totalPages) {
+            this.currentPage = page;
+        }
     }
     
     get hasProjects() {
