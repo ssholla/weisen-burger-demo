@@ -389,6 +389,8 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
     }
 
     handleOpenRegister() {
+        // Close detail modal (if open) and open register modal
+        this.showDetailModal = false;
         this.showRegisterModal = true;
         // prefill if possible
         this.registerFirstName = '';
