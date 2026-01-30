@@ -41,6 +41,7 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
     registerLastName = '';
     registerEmail = '';
     registerPhone = '';
+    registerMobile = '';
 
     // All projects data
     @track allProjects = [];
@@ -398,6 +399,7 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
         this.registerLastName = '';
         this.registerEmail = '';
         this.registerPhone = '';
+        this.registerMobile = '';
     }
 
     handleCloseRegister() {
@@ -423,7 +425,14 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
 
         try {
             const unitId = this.selectedProject ? this.selectedProject.id : null;
-            const leadId = await createLead({ firstName: this.registerFirstName || null, lastName: this.registerLastName, email: this.registerEmail || null, phone: this.registerPhone || null, unitId: unitId });
+            const leadId = await createLead({
+                firstName: this.registerFirstName || null,
+                lastName: this.registerLastName,
+                email: this.registerEmail || null,
+                phone: this.registerPhone || null,
+                mobile: this.registerMobile || null,
+                unitId: unitId
+            });
             this.dispatchEvent(new ShowToastEvent({ title: 'Success', message: 'Successfully Registered', variant: 'success' }));
             this.showRegisterModal = false;
         } catch (error) {

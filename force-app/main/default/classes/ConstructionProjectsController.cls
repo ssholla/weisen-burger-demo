@@ -82,7 +82,7 @@ public with sharing class ConstructionProjectsController {
     }
 
     @AuraEnabled
-    public static Id createLead(String firstName, String lastName, String email, String phone, Id unitId) {
+    public static Id createLead(String firstName, String lastName, String email, String phone, String mobile, Id unitId) {
         if (String.isBlank(lastName)) {
             throw new AuraHandledException('Last name is required');
         }
@@ -106,6 +106,7 @@ public with sharing class ConstructionProjectsController {
         l.LastName = lastName;
         l.Email = email;
         l.Phone = phone;
+        l.MobilePhone = mobile;
         l.Company = company;
         l.Description = 'Registered via project detail modal' + (unitId != null ? ' (Unit Id: ' + String.valueOf(unitId) + ')' : '');
 
