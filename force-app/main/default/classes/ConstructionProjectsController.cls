@@ -109,7 +109,10 @@ public with sharing class ConstructionProjectsController {
         l.Company = company;
         l.Description = 'Registered via project detail modal' + (unitId != null ? ' (Unit Id: ' + String.valueOf(unitId) + ')' : '');
 
-        insert l;
+        Database.DMLOptions dml = new Database.DMLOptions(); 
+        dml.DuplicateRuleHeader.allowSave = true;
+
+        database.insert(l,dml);
         return l.Id;
     }
 }
