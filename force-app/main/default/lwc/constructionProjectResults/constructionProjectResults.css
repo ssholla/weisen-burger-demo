@@ -731,6 +731,15 @@
     }
 }
 
+.register-section-title {
+    grid-column: 1 / -1;
+    font-weight: 700;
+    color: #16325c;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
 .register-input {
     --sds-c-input-shadow-focus: 0 0 0 1px #0e2e42;
 }
