@@ -622,3 +622,14 @@
         padding: 1.5rem;
     }
 }
+
+/* Ensure register modal fills same height as detail modal and centers the form vertically */
+.register-form-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* let the form area grow to fill available modal space */
+    flex: 1 1 auto;
+    /* ensure the register modal is taller to match detail view */
+    min-height: 700px;
+}
