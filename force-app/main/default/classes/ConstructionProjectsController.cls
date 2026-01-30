@@ -80,4 +80,36 @@ public with sharing class ConstructionProjectsController {
         if (s.length() <= length) return s;
         return s.substring(s.length() - length);
     }
+
+    @AuraEnabled
+    public static Id createLead(String firstName, String lastName, String email, String phone, Id unitId) {
+        if (String.isBlank(lastName)) {
+            throw new AuraHandledException('Last name is required');
+        }
+
+        String company = 'Website Registration';
+        if (unitId != null) {
+            try {
+                KS_Unit__c u = [SELECT Id, KS_Code__c, KS_Project__r.Name FROM KS_Unit__c WHERE Id = :unitId LIMIT 1];
+                if (u != null && u.KS_Project__r != null && String.isNotBlank(u.KS_Project__r.Name)) {
+                    company = u.KS_Project__r.Name;
+                } else if (u != null && String.isNotBlank(u.KS_Code__c)) {
+                    company = 'Registration - ' + u.KS_Code__c;
+                }
+            } catch (Exception e) {
+                // fallback to default company
+            }
+        }
+
+        Lead l = new Lead();
+        l.FirstName = firstName;
+        l.LastName = lastName;
+        l.Email = email;
+        l.Phone = phone;
+        l.Company = company;
+        l.Description = 'Registered via project detail modal' + (unitId != null ? ' (Unit Id: ' + String.valueOf(unitId) + ')' : '');
+
+        insert l;
+        return l.Id;
+    }
 }

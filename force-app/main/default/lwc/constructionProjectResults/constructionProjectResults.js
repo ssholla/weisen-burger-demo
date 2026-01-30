@@ -1,6 +1,8 @@
 import { LightningElement, track, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import getProjects from '@salesforce/apex/ConstructionProjectsController.getProjects';
+import createLead from '@salesforce/apex/ConstructionProjectsController.createLead';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { subscribe, MessageContext } from 'lightning/messageService';
 import PROJECT_FILTERS from '@salesforce/messageChannel/ProjectFilters__c';
 
@@ -17,6 +19,12 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
     // Modal state
     showDetailModal = false;
     @track selectedProject = null;
+    // Register modal state and inputs
+    showRegisterModal = false;
+    registerFirstName = '';
+    registerLastName = '';
+    registerEmail = '';
+    registerPhone = '';
 
     // All projects data
     @track allProjects = [];
@@ -302,5 +310,42 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
                 actionName: 'view'
             }
         });
+    }
+
+    handleOpenRegister() {
+        this.showRegisterModal = true;
+        // prefill if possible
+        this.registerFirstName = '';
+        this.registerLastName = '';
+        this.registerEmail = '';
+        this.registerPhone = '';
+    }
+
+    handleCloseRegister() {
+        this.showRegisterModal = false;
+    }
+
+    handleRegisterInput(event) {
+        const field = event.target.dataset.name;
+        if (!field) return;
+        this[`register${field.charAt(0).toUpperCase() + field.slice(1)}`] = event.target.value;
+    }
+
+    async handleSubmitRegister() {
+        if (!this.registerLastName) {
+            this.dispatchEvent(new ShowToastEvent({ title: 'Error', message: 'Last name is required', variant: 'error' }));
+            return;
+        }
+
+        try {
+            const unitId = this.selectedProject ? this.selectedProject.id : null;
+            const leadId = await createLead({ firstName: this.registerFirstName || null, lastName: this.registerLastName, email: this.registerEmail || null, phone: this.registerPhone || null, unitId: unitId });
+            this.dispatchEvent(new ShowToastEvent({ title: 'Success', message: 'Lead created: ' + leadId, variant: 'success' }));
+            this.showRegisterModal = false;
+        } catch (error) {
+            console.error('Error creating lead', error);
+            const msg = (error && error.body && error.body.message) ? error.body.message : (error && error.message) ? error.message : 'Unknown error';
+            this.dispatchEvent(new ShowToastEvent({ title: 'Error', message: msg, variant: 'error' }));
+        }
     }
 }
