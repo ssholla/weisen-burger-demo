@@ -75,7 +75,11 @@
 .footer-pagination {
     display: flex;
     justify-content: center;
-    padding: 1rem 0 2rem 0;
+    padding: 1rem 1.25rem;
+    margin-top: 1.5rem;
+    background: linear-gradient(135deg, #0e2e42 0%, #0e2e42 100%);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(26, 77, 143, 0.12);
 }
 
 .footer-pagination .pagination-buttons {
@@ -86,14 +90,20 @@
 
 .footer-pagination .page-btn,
 .footer-pagination .nav-button {
-    background: #ffffff;
-    color: #0e2e42;
-    border: 1px solid rgba(14,46,66,0.08);
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.95);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    min-width: 38px;
+    text-align: center;
 }
 
 .footer-pagination .page-btn.active {
-    background: #0e2e42;
-    color: #ffffff;
+    background: #ffffff;
+    color: #0e2e42;
 }
 
 .results-count {
