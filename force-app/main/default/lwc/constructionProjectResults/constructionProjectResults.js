@@ -389,7 +389,8 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
     }
 
     handleOpenRegister() {
-        // Close detail modal (if open) and open register modal
+        // Remember if detail modal was open, close it and open register modal
+        this._wasDetailOpen = !!this.showDetailModal;
         this.showDetailModal = false;
         this.showRegisterModal = true;
         // prefill if possible
@@ -401,6 +402,11 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
 
     handleCloseRegister() {
         this.showRegisterModal = false;
+        // If the register modal was opened from the detail modal, restore it on cancel
+        if (this._wasDetailOpen && this.selectedProject) {
+            this.showDetailModal = true;
+        }
+        this._wasDetailOpen = false;
     }
 
     handleRegisterInput(event) {
