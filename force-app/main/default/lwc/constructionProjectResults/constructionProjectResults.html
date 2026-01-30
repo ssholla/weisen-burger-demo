@@ -265,27 +265,34 @@
         <!-- Register Lead Modal -->
         <template if:true={showRegisterModal}>
             <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
-                <div class="slds-modal__container register-modal-container">
+                <div class="slds-modal__container detail-modal-container">
                     <header class="slds-modal__header">
                         <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCloseRegister}>
                             <lightning-icon icon-name="utility:close" alternative-text="Close" size="small"></lightning-icon>
                             <span class="slds-assistive-text">Close</span>
                         </button>
-                        <h2 class="slds-modal__title">Register a Deal</h2>
+                        <h2 class="slds-modal__title detail-location">Register Interest</h2>
                     </header>
 
-                    <div class="slds-modal__content">
-                        <div class="slds-p-around_medium">
-                            <lightning-input label="First Name" value={registerFirstName} onchange={handleRegisterInput} data-name="firstName"></lightning-input>
-                            <lightning-input label="Last Name" value={registerLastName} onchange={handleRegisterInput} data-name="lastName"></lightning-input>
-                            <lightning-input label="Email" type="email" value={registerEmail} onchange={handleRegisterInput} data-name="email"></lightning-input>
-                            <lightning-input label="Phone" type="tel" value={registerPhone} onchange={handleRegisterInput} data-name="phone"></lightning-input>
+                    <div class="slds-modal__content detail-modal-body">
+                        <div class="register-form-container">
+                            <div class="register-header-text">
+                                <h1 class="detail-title">Interested in {selectedProject.title}?</h1>
+                                <p class="project-location">Fill in your details below and we will contact you shortly.</p>
+                            </div>
+
+                            <div class="register-fields-grid">
+                                <lightning-input label="First Name" value={registerFirstName} onchange={handleRegisterInput} data-name="firstName" class="register-input"></lightning-input>
+                                <lightning-input label="Last Name" value={registerLastName} onchange={handleRegisterInput} data-name="lastName" class="register-input" required></lightning-input>
+                                <lightning-input label="Email" type="email" value={registerEmail} onchange={handleRegisterInput} data-name="email" class="register-input"></lightning-input>
+                                <lightning-input label="Phone" type="tel" value={registerPhone} onchange={handleRegisterInput} data-name="phone" class="register-input"></lightning-input>
+                            </div>
                         </div>
                     </div>
 
-                    <footer class="slds-modal__footer slds-grid slds-grid_align-end">
-                        <button class="slds-button slds-button_neutral" onclick={handleCloseRegister}>Cancel</button>
-                        <button class="slds-button slds-button_brand" onclick={handleSubmitRegister}>Submit</button>
+                    <footer class="detail-modal-footer">
+                        <button class="custom-contact-button" onclick={handleCloseRegister}>Cancel</button>
+                        <button class="custom-register-button" onclick={handleSubmitRegister}>Submit Registration</button>
                     </footer>
                 </div>
             </section>
