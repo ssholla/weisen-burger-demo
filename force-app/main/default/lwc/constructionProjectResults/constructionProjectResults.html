@@ -7,7 +7,7 @@
                 </div>
 
                 <div class="header-pagination" if:true={hasProjects}>
-                    <div class="pagination-info">Showing {showingStartIndex}–{showingEndIndex} of {resultCount}</div>
+                    <!-- <div class="pagination-info">{showingStartIndex}–{showingEndIndex} of {resultCount}</div> -->
                     <div class="pagination-buttons">
                         <button class="nav-button prev" onclick={handlePreviousPage} disabled={isFirstPage} aria-label="Previous page">‹</button>
                         <template for:each={pages} for:item="p">
