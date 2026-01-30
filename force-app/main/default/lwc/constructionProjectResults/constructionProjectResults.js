@@ -42,6 +42,10 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
     registerEmail = '';
     registerPhone = '';
     registerMobile = '';
+    registerStreet = '';
+    registerCity = '';
+    registerPostalCode = '';
+    registerCountry = '';
 
     // All projects data
     @track allProjects = [];
@@ -400,6 +404,10 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
         this.registerEmail = '';
         this.registerPhone = '';
         this.registerMobile = '';
+        this.registerStreet = '';
+        this.registerCity = '';
+        this.registerPostalCode = '';
+        this.registerCountry = '';
     }
 
     handleCloseRegister() {
@@ -431,6 +439,10 @@ export default class ConstructionProjectResults extends NavigationMixin(Lightnin
                 email: this.registerEmail || null,
                 phone: this.registerPhone || null,
                 mobile: this.registerMobile || null,
+                street: this.registerStreet || null,
+                city: this.registerCity || null,
+                postalCode: this.registerPostalCode || null,
+                country: this.registerCountry || null,
                 unitId: unitId
             });
             this.dispatchEvent(new ShowToastEvent({ title: 'Success', message: 'Successfully Registered', variant: 'success' }));
